@@ -115,6 +115,7 @@ resource "azurerm_logic_app_workflow" "lasbtoeg" {
     "$connections" = jsonencode(
       {
         azureeventgrid = {
+          connectionId         = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${azurerm_resource_group.rg.name}/providers/Microsoft.Web/connections/azureeventgrid"
           connectionName       = "azureeventgrid"
           connectionProperties = {
             authentication = {

@@ -1,0 +1,233 @@
+{
+    "type": "Microsoft.Logic/workflows",
+    "apiVersion": "2017-07-01",
+    "name": "[parameters('workflows_la_sbtoegsample_name')]",
+    "location": "eastus",
+    "properties": {
+        "state": "Enabled",
+        "definition": {
+            "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+            "contentVersion": "1.0.0.0",
+            "parameters": {
+                "$connections": {
+                    "defaultValue": {},
+                    "type": "Object"
+                }
+            },
+            "triggers": {
+                "When_a_resource_event_occurs": {
+                    "splitOn": "@triggerBody()",
+                    "type": "ApiConnectionWebhook",
+                    "inputs": {
+                        "body": {
+                            "properties": {
+                                "destination": {
+                                    "endpointType": "webhook",
+                                    "properties": {
+                                        "endpointUrl": "@{listCallbackUrl()}"
+                                    }
+                                },
+                                "filter": {
+                                    "includedEventTypes": [
+                                        "Microsoft.ServiceBus.ActiveMessagesAvailableWithNoListeners"
+                                    ]
+                                },
+                                "topic": "[resourceId('Microsoft.ServiceBus/namespaces', parameters('namespaces_sbtoegsample_name'))]"
+                            }
+                        },
+                        "host": {
+                            "connection": {
+                                "name": "@parameters('$connections')['azureeventgrid']['connectionId']"
+                            }
+                        },
+                        "path": "/subscriptions/@{encodeURIComponent('${subscription_id}')}/providers/@{encodeURIComponent('Microsoft.ServiceBus.Namespaces')}/resource/eventSubscriptions",
+                        "queries": {
+                            "x-ms-api-version": "2017-06-15-preview"
+                        }
+                    }
+                }
+            },
+            "actions": {
+                "For_each": {
+                    "foreach": "@body('Get_messages_from_a_topic_subscription_(peek-lock)')",
+                    "actions": {
+                        "Append_to_array_variable": {
+                            "runAfter": {
+                                "Parse_JSON": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "AppendToArrayVariable",
+                            "inputs": {
+                                "name": "myarray",
+                                "value": "@base64ToString(body('Parse_JSON')?['ContentData'])"
+                            }
+                        },
+                        "Complete_the_message_in_a_topic_subscription": {
+                            "runAfter": {
+                                "Append_to_array_variable": [
+                                    "Succeeded"
+                                ]
+                            },
+                            "type": "ApiConnection",
+                            "inputs": {
+                                "host": {
+                                    "connection": {
+                                        "name": "@parameters('$connections')['servicebus_1']['connectionId']"
+                                    }
+                                },
+                                "method": "delete",
+                                "path": "/@{encodeURIComponent(encodeURIComponent('mytopic'))}/subscriptions/@{encodeURIComponent('mysubscription')}/messages/complete",
+                                "queries": {
+                                    "lockToken": "@items('For_each')?['LockToken']",
+                                    "sessionId": "",
+                                    "subscriptionType": "Main"
+                                }
+                            }
+                        },
+                        "Parse_JSON": {
+                            "runAfter": {},
+                            "type": "ParseJson",
+                            "inputs": {
+                                "content": "@items('For_each')",
+                                "schema": {
+                                    "properties": {
+                                        "ContentData": {
+                                            "type": "string"
+                                        },
+                                        "ContentTransferEncoding": {
+                                            "type": "string"
+                                        },
+                                        "ContentType": {
+                                            "type": "string"
+                                        },
+                                        "CorrelationId": {},
+                                        "Label": {},
+                                        "LockToken": {
+                                            "type": "string"
+                                        },
+                                        "MessageId": {
+                                            "type": "string"
+                                        },
+                                        "Properties": {
+                                            "properties": {
+                                                "DeliveryCount": {
+                                                    "type": "string"
+                                                },
+                                                "EnqueuedSequenceNumber": {
+                                                    "type": "string"
+                                                },
+                                                "EnqueuedTimeUtc": {
+                                                    "type": "string"
+                                                },
+                                                "ExpiresAtUtc": {
+                                                    "type": "string"
+                                                },
+                                                "LockToken": {
+                                                    "type": "string"
+                                                },
+                                                "LockedUntilUtc": {
+                                                    "type": "string"
+                                                },
+                                                "MessageId": {
+                                                    "type": "string"
+                                                },
+                                                "ScheduledEnqueueTimeUtc": {
+                                                    "type": "string"
+                                                },
+                                                "SequenceNumber": {
+                                                    "type": "string"
+                                                },
+                                                "Size": {
+                                                    "type": "string"
+                                                },
+                                                "State": {
+                                                    "type": "string"
+                                                },
+                                                "TimeToLive": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "type": "object"
+                                        },
+                                        "ReplyTo": {},
+                                        "ReplyToSessionId": {},
+                                        "ScheduledEnqueueTimeUtc": {
+                                            "type": "string"
+                                        },
+                                        "SequenceNumber": {
+                                            "type": "integer"
+                                        },
+                                        "SessionId": {},
+                                        "TimeToLive": {
+                                            "type": "string"
+                                        },
+                                        "To": {}
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "runAfter": {
+                        "Initialize_variable": [
+                            "Succeeded"
+                        ]
+                    },
+                    "type": "Foreach"
+                },
+                "Get_messages_from_a_topic_subscription_(peek-lock)": {
+                    "runAfter": {},
+                    "type": "ApiConnection",
+                    "inputs": {
+                        "host": {
+                            "connection": {
+                                "name": "@parameters('$connections')['servicebus_1']['connectionId']"
+                            }
+                        },
+                        "method": "get",
+                        "path": "/@{encodeURIComponent(encodeURIComponent('mytopic'))}/subscriptions/@{encodeURIComponent('mysubscription')}/messages/batch/peek",
+                        "queries": {
+                            "maxMessageCount": 20,
+                            "sessionId": "",
+                            "subscriptionType": "Main"
+                        }
+                    }
+                },
+                "Initialize_variable": {
+                    "runAfter": {
+                        "Get_messages_from_a_topic_subscription_(peek-lock)": [
+                            "Succeeded"
+                        ]
+                    },
+                    "type": "InitializeVariable",
+                    "inputs": {
+                        "variables": [
+                            {
+                                "name": "myarray",
+                                "type": "array"
+                            }
+                        ]
+                    }
+                }
+            },
+            "outputs": {}
+        },
+        "parameters": {
+            "$connections": {
+                "value": {
+                    "azureeventgrid": {
+                        "connectionId": "[resourceId('Microsoft.Web/connections', parameters('connections_azureeventgrid_name'))]",
+                        "connectionName": "azureeventgrid",
+                        "id": "/subscriptions/${subscription_id}/providers/Microsoft.Web/locations/eastus/managedApis/azureeventgrid"
+                    },
+                    "servicebus_1": {
+                        "connectionId": "[resourceId('Microsoft.Web/connections', parameters('connections_servicebus_1_name'))]",
+                        "connectionName": "servicebus-1",
+                        "id": "/subscriptions/${subscription_id}/providers/Microsoft.Web/locations/eastus/managedApis/servicebus"
+                    }
+                }
+            }
+        }
+    }
+}

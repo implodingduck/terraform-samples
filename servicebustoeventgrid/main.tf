@@ -64,3 +64,33 @@ resource "azurerm_servicebus_namespace" "sb" {
   }
   tags = local.tags
 }
+
+resource "azurerm_servicebus_topic" "topic" {
+  name         = "mytopic"
+  namespace_id = azurerm_servicebus_namespace.sb.id
+}
+
+resource "azurerm_eventgrid_system_topic" "sbst" {
+  name                   = "servicebussystemtopic${random_string.unique.result}"
+  resource_group_name    = azurerm_resource_group.rg.name
+  location               = azurerm_resource_group.rg.location
+  source_arm_resource_id = azurerm_servicebus_namespace.sb.id
+  topic_type             = "Microsoft.ServiceBus.Namespaces"
+}
+
+# resource "azurerm_eventgrid_system_topic_event_subscription" "sbstsub" {
+#   name                = "subsbsttola"
+#   system_topic        = azurerm_eventgrid_system_topic.sbst.name
+#   resource_group_name = azurerm_resource_group.rg.name
+
+#   webhook_endpoint {
+#     url =
+#   }
+# }
+
+data "template_file" "sbtoegstjson" {
+  template = "${file("${path.module}/la-sb-to-eg-st.json")}"
+  vars = {
+    subscription_id = data.azurerm_client_config.current.subscription_id
+  }
+}

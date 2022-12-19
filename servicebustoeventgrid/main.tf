@@ -156,6 +156,31 @@ resource "azurerm_logic_app_workflow" "lasbtola" {
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
 
+  parameters          = {
+    "$connections" = jsonencode(
+      {
+        azureeventgrid = {
+          connectionId         = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${azurerm_resource_group.rg.name}/providers/Microsoft.Web/connections/azureservicebus"
+          connectionName       = "azureservicebus"
+          connectionProperties = {
+            authentication = {
+              type = "ManagedServiceIdentity"
+            }
+          }
+          id                   = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/providers/Microsoft.Web/locations/${local.location}/managedApis/azureservicebus"
+        }
+      }
+    )
+ }
+  workflow_parameters  = {
+    "$connections" = jsonencode(
+      {
+        defaultValue = {}
+        type         = "Object"
+      }
+    )
+  }
+
   identity {
     type = "SystemAssigned"
   }
@@ -167,6 +192,31 @@ resource "azurerm_logic_app_workflow" "custom-eg-to-la" {
   name                = "la-custom-eg-to-la"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
+
+  parameters          = {
+    "$connections" = jsonencode(
+      {
+        azureeventgrid = {
+          connectionId         = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${azurerm_resource_group.rg.name}/providers/Microsoft.Web/connections/azurecustomeg"
+          connectionName       = "azurecustomeg"
+          connectionProperties = {
+            authentication = {
+              type = "ManagedServiceIdentity"
+            }
+          }
+          id                   = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/providers/Microsoft.Web/locations/${local.location}/managedApis/azurecustomeg"
+        }
+      }
+    )
+  }
+  workflow_parameters  = {
+    "$connections" = jsonencode(
+      {
+        defaultValue = {}
+        type         = "Object"
+      }
+    )
+  }
 
   identity {
     type = "SystemAssigned"

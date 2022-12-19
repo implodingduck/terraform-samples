@@ -52,3 +52,15 @@ resource "azurerm_resource_group" "rg" {
   location = local.location
   tags = local.tags
 }
+
+resource "azurerm_servicebus_namespace" "sb" {
+  name                = "sbsample${random_string.unique.result}"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+  sku                 = "Premium"
+  capacity            = 1
+  identity {
+    type = "SystemAssigned"
+  }
+  tags = local.tags
+}

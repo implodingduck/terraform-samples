@@ -78,19 +78,26 @@ resource "azurerm_eventgrid_system_topic" "sbst" {
   topic_type             = "Microsoft.ServiceBus.Namespaces"
 }
 
-# resource "azurerm_eventgrid_system_topic_event_subscription" "sbstsub" {
-#   name                = "subsbsttola"
-#   system_topic        = azurerm_eventgrid_system_topic.sbst.name
-#   resource_group_name = azurerm_resource_group.rg.name
+resource "azurerm_logic_app_workflow" "lasbtoeg" {
+  name                = "la-sb-to-eg-st"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
 
-#   webhook_endpoint {
-#     url =
-#   }
-# }
+  tags = local.tags
+}
 
-data "template_file" "sbtoegstjson" {
-  template = "${file("${path.module}/la-sb-to-eg-st.json")}"
-  vars = {
-    subscription_id = data.azurerm_client_config.current.subscription_id
-  }
+resource "azurerm_eventgrid_topic" "topic" {
+  name                = "customegtopic${random_string.unique.result}"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+
+  tags = local.tags
+}
+
+resource "azurerm_logic_app_workflow" "lasbtoeg" {
+  name                = "la-sb-to-la-eg-custom"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+
+  tags = local.tags
 }

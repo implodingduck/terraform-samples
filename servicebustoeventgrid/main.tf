@@ -70,6 +70,18 @@ resource "azurerm_servicebus_topic" "topic" {
   namespace_id = azurerm_servicebus_namespace.sb.id
 }
 
+resource "azurerm_servicebus_subscription" "sub" {
+  name               = "mysubscription"
+  topic_id           = azurerm_servicebus_topic.example.id
+  max_delivery_count = 1
+}
+
+resource "azurerm_servicebus_subscription" "customsub" {
+  name               = "mycustomsubscription"
+  topic_id           = azurerm_servicebus_topic.example.id
+  max_delivery_count = 1
+}
+
 resource "azurerm_servicebus_topic_authorization_rule" "sender" {
   name     = "senderpolicy"
   topic_id = azurerm_servicebus_topic.topic.id

@@ -83,6 +83,10 @@ resource "azurerm_logic_app_workflow" "lasbtoeg" {
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
 
+  identity {
+    type = "SystemAssigned"
+  }
+
   tags = local.tags
 }
 
@@ -99,6 +103,10 @@ resource "azurerm_logic_app_workflow" "lasbtola" {
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
 
+  identity {
+    type = "SystemAssigned"
+  }
+
   tags = local.tags
 }
 
@@ -107,5 +115,27 @@ resource "azurerm_logic_app_workflow" "custom-eg-to-la" {
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
 
+  identity {
+    type = "SystemAssigned"
+  }
+
   tags = local.tags
+}
+
+resource "azurerm_role_assignment" "salasbtoeg" {
+  scope                = azurerm_resource_group.rg.id
+  role_definition_name = "Contributor"
+  principal_id         = azurerm_logic_app_workflow.lasbtoeg.identity.0.principal_id
+}
+
+resource "azurerm_role_assignment" "salasbtola" {
+  scope                = azurerm_resource_group.rg.id
+  role_definition_name = "Contributor"
+  principal_id         = azurerm_logic_app_workflow.lasbtola.identity.0.principal_id
+}
+
+resource "azurerm_role_assignment" "sacustom-eg-to-la" {
+  scope                = azurerm_resource_group.rg.id
+  role_definition_name = "Contributor"
+  principal_id         = azurerm_logic_app_workflow.custom-eg-to-la.identity.0.principal_id
 }

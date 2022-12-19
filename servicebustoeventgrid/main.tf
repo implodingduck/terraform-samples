@@ -111,6 +111,29 @@ resource "azurerm_logic_app_workflow" "lasbtoeg" {
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
 
+  parameters          = {
+    "$connections" = jsonencode(
+      {
+        azureeventgrid = {
+          connectionName       = "azureeventgrid"
+          connectionProperties = {
+            authentication = {
+              type = "ManagedServiceIdentity"
+            }
+          }
+        }
+      }
+    )
+ }
+  workflow_parameters  = {
+    "$connections" = jsonencode(
+      {
+        defaultValue = {}
+        type         = "Object"
+      }
+    )
+  }
+
   identity {
     type = "SystemAssigned"
   }

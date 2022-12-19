@@ -72,13 +72,13 @@ resource "azurerm_servicebus_topic" "topic" {
 
 resource "azurerm_servicebus_subscription" "sub" {
   name               = "mysubscription"
-  topic_id           = azurerm_servicebus_topic.example.id
+  topic_id           = azurerm_servicebus_topic.topic.id
   max_delivery_count = 1
 }
 
 resource "azurerm_servicebus_subscription" "customsub" {
   name               = "mycustomsubscription"
-  topic_id           = azurerm_servicebus_topic.example.id
+  topic_id           = azurerm_servicebus_topic.topic.id
   max_delivery_count = 1
 }
 

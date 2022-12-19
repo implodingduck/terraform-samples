@@ -122,6 +122,7 @@ resource "azurerm_logic_app_workflow" "lasbtoeg" {
               type = "ManagedServiceIdentity"
             }
           }
+          id                   = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/providers/Microsoft.Web/locations/${local.location}/managedApis/azureeventgrid"
         }
       }
     )

@@ -94,8 +94,8 @@ resource "azurerm_eventgrid_topic" "topic" {
   tags = local.tags
 }
 
-resource "azurerm_logic_app_workflow" "lasbtoeg" {
-  name                = "la-sb-to-la-eg-custom"
+resource "azurerm_logic_app_workflow" "lasbtola" {
+  name                = "la-sb-to-la"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
 

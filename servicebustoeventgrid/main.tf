@@ -70,6 +70,22 @@ resource "azurerm_servicebus_topic" "topic" {
   namespace_id = azurerm_servicebus_namespace.sb.id
 }
 
+resource "azurerm_servicebus_topic_authorization_rule" "sender" {
+  name     = "senderpolicy"
+  topic_id = azurerm_servicebus_topic.topic.id
+  listen   = false
+  send     = true
+  manage   = false
+}
+
+resource "azurerm_servicebus_topic_authorization_rule" "listener" {
+  name     = "listenerpolicy"
+  topic_id = azurerm_servicebus_topic.topic.id
+  listen   = true
+  send     = false
+  manage   = false
+}
+
 resource "azurerm_eventgrid_system_topic" "sbst" {
   name                   = "servicebussystemtopic${random_string.unique.result}"
   resource_group_name    = azurerm_resource_group.rg.name

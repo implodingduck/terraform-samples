@@ -54,21 +54,49 @@ resource "azurerm_resource_group" "rg" {
   tags = local.tags
 }
 
-resource "azurerm_api_management" "resource-apim" {
-  name                = "apim${random_string.unique.result}"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
-  publisher_name      = "implodingduck"
-  publisher_email     = "something@nothing.com"
+# resource "azurerm_api_management" "resource-apim" {
+#   name                = "apim${random_string.unique.result}"
+#   location            = azurerm_resource_group.rg.location
+#   resource_group_name = azurerm_resource_group.rg.name
+#   publisher_name      = "implodingduck"
+#   publisher_email     = "something@nothing.com"
 
-  public_network_access_enabled = true
+#   public_network_access_enabled = true
 
-  sku_name = "Premium_1"
+#   sku_name = "Premium_1"
 
-  identity {
-    type = "SystemAssigned"
-  }
+#   identity {
+#     type = "SystemAssigned"
+#   }
 
+#   tags = local.tags
+#   zones = ["1", "2"]
+# }
+
+resource "azapi_resource" "apimstv2" {
+  type = "Microsoft.ApiManagement/service@2022-04-01-preview"
+  name = "apim${random_string.unique.result}"
+  location = azurerm_resource_group.rg.location
+  parent_id = azurerm_resource_group.rg.id
   tags = local.tags
-  zones = ["1", "2"]
+  identity {
+    type = "systemassigned"
+  }
+  body = jsonencode({
+    properties = {
+      
+      publicNetworkAccess = "Enabled"
+      publisherEmail = "something@nothing.com"
+      publisherName = "implodingduck"
+      
+    }
+    zones = [
+      "1",
+      "2"
+    ]
+    sku = {
+      capacity = 1
+      name = "Premium"
+    }
+  })
 }

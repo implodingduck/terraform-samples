@@ -95,7 +95,7 @@ resource "azapi_resource" "apimstv2" {
       "2"
     ]
     sku = {
-      capacity = 1
+      capacity = 2
       name = "Premium"
     }
   })

@@ -63,7 +63,7 @@ resource "azurerm_api_management" "resource-apim" {
 
   public_network_access_enabled = true
 
-  sku_name = "Premium"
+  sku_name = "Premium_1"
 
   identity {
     type = "SystemAssigned"

@@ -80,7 +80,7 @@ resource "azapi_resource" "apimstv2" {
   parent_id = azurerm_resource_group.rg.id
   tags = local.tags
   identity {
-    type = "systemassigned"
+    type = "SystemAssigned"
   }
   body = jsonencode({
     properties = {

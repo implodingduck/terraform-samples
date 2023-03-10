@@ -205,17 +205,17 @@ resource "azurerm_linux_function_app" "func" {
   storage_account_name       = azurerm_storage_account.sa.name
   storage_account_access_key = azurerm_storage_account.sa.primary_access_key
   service_plan_id            = azurerm_service_plan.asp.id
-  virtual_network_subnet_id  = azurerm_subnet.functions.id
+  #virtual_network_subnet_id  = azurerm_subnet.functions.id
   site_config {
     always_on                = true
-    vnet_route_all_enabled    = true
+    #vnet_route_all_enabled    = true
     application_stack {
       node_version = "16"
     }
   }
   app_settings = {
-    "WEBSITE_CONTENTOVERVNET"         = "1"
-    "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"       = azurerm_storage_account.sa.primary_connection_string
-    "WEBSITE_CONTENTSHARE"                           = "${local.func_name}"
+    #"WEBSITE_CONTENTOVERVNET"         = "1"
+    #"WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"       = azurerm_storage_account.sa.primary_connection_string
+    #"WEBSITE_CONTENTSHARE"                           = "${local.func_name}"
   }
 }

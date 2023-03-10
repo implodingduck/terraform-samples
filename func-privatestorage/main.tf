@@ -157,7 +157,7 @@ resource "azurerm_storage_account" "sa" {
 resource "azurerm_storage_account_network_rules" "runner" {
   storage_account_id = azurerm_storage_account.sa.id
 
-  default_action             = "Allow"
+  default_action             = "Deny"
   ip_rules                   = [data.http.ip.response_body]
   #virtual_network_subnet_ids = [azurerm_subnet.functions.id]
   bypass                     = ["AzureServices"]
@@ -175,11 +175,11 @@ resource "azurerm_storage_container" "secrets" {
   container_access_type = "private"
 }
 
-resource "azurerm_storage_share" "func" {
-  name                 = local.func_name
-  storage_account_name = azurerm_storage_account.sa.name
-  quota                = 1
-}
+# resource "azurerm_storage_share" "func" {
+#   name                 = local.func_name
+#   storage_account_name = azurerm_storage_account.sa.name
+#   quota                = 1
+# }
 resource "azurerm_service_plan" "asp" {
   name                = "asp-${local.func_name}"
   resource_group_name = azurerm_resource_group.rg.name
@@ -194,7 +194,7 @@ resource "azurerm_linux_function_app" "func" {
     azurerm_private_endpoint.pefile,
     azurerm_private_dns_zone_virtual_network_link.blob,
     azurerm_private_dns_zone_virtual_network_link.file,
-    azurerm_storage_share.func,
+    #azurerm_storage_share.func,
     azurerm_storage_container.hosts,
     azurerm_storage_container.secrets
   ]

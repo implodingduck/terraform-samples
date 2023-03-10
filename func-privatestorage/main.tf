@@ -43,6 +43,9 @@ data "azurerm_log_analytics_workspace" "default" {
   resource_group_name = "DefaultResourceGroup-EUS"
 } 
 
+data "http" "ip" {
+  url = "https://ifconfig.me/ip"
+}
 resource "azurerm_virtual_network" "default" {
   name                = "vnet-${local.func_name}-${local.loc_for_naming}"
   location            = azurerm_resource_group.rg.location
@@ -146,27 +149,37 @@ resource "azurerm_storage_account" "sa" {
   account_kind             = "StorageV2"
   account_tier             = "Standard"
   account_replication_type = "LRS"
-  public_network_access_enabled = false
+ 
   tags = local.tags
 }
 
-# resource "azurerm_storage_container" "hosts" {
-#   name                  = "azure-webjobs-hosts"
-#   storage_account_name  = azurerm_storage_account.sa.name
-#   container_access_type = "private"
-# }
 
-# resource "azurerm_storage_container" "secrets" {
-#   name                  = "azure-webjobs-secrets"
-#   storage_account_name  = azurerm_storage_account.sa.name
-#   container_access_type = "private"
-# }
+resource "azurerm_storage_account_network_rules" "runner" {
+  storage_account_id = azurerm_storage_account.sa.id
 
-# resource "azurerm_storage_share" "func" {
-#   name                 = local.func_name
-#   storage_account_name = azurerm_storage_account.sa.name
-#   quota                = 1
-# }
+  default_action             = "Deny"
+  ip_rules                   = [data.http.ip.response_body]
+  #virtual_network_subnet_ids = [azurerm_subnet.functions.id]
+  bypass                     = ["AzureServices"]
+}
+
+resource "azurerm_storage_container" "hosts" {
+  name                  = "azure-webjobs-hosts"
+  storage_account_name  = azurerm_storage_account.sa.name
+  container_access_type = "private"
+}
+
+resource "azurerm_storage_container" "secrets" {
+  name                  = "azure-webjobs-secrets"
+  storage_account_name  = azurerm_storage_account.sa.name
+  container_access_type = "private"
+}
+
+resource "azurerm_storage_share" "func" {
+  name                 = local.func_name
+  storage_account_name = azurerm_storage_account.sa.name
+  quota                = 1
+}
 resource "azurerm_service_plan" "asp" {
   name                = "asp-${local.func_name}"
   resource_group_name = azurerm_resource_group.rg.name
@@ -181,9 +194,9 @@ resource "azurerm_linux_function_app" "func" {
     azurerm_private_endpoint.pefile,
     azurerm_private_dns_zone_virtual_network_link.blob,
     azurerm_private_dns_zone_virtual_network_link.file,
-    # azurerm_storage_share.func,
-    # azurerm_storage_container.hosts,
-    # azurerm_storage_container.secrets
+    azurerm_storage_share.func,
+    azurerm_storage_container.hosts,
+    azurerm_storage_container.secrets
   ]
   name                = local.func_name
   resource_group_name = azurerm_resource_group.rg.name

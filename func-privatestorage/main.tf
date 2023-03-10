@@ -214,6 +214,8 @@ resource "azurerm_linux_function_app" "func" {
     }
   }
   app_settings = {
+    "FUNCTIONS_WORKER_RUNTIME" = "node"
+    "FUNCTIONS_EXTENSION_VERSION" = "~4"
     #"WEBSITE_CONTENTOVERVNET"         = "1"
     #"WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"       = azurerm_storage_account.sa.primary_connection_string
     #"WEBSITE_CONTENTSHARE"                           = "${local.func_name}"

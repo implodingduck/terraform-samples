@@ -2,7 +2,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=3.47.0"
+      version = "=3.43.0"
     }
     random = {
       source  = "hashicorp/random"
@@ -149,7 +149,7 @@ resource "azurerm_storage_account" "sa" {
   account_kind             = "StorageV2"
   account_tier             = "Standard"
   account_replication_type = "LRS"
- 
+  allow_nested_items_to_be_public = false
   tags = local.tags
 }
 

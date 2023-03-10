@@ -154,14 +154,14 @@ resource "azurerm_storage_account" "sa" {
 }
 
 
-resource "azurerm_storage_account_network_rules" "runner" {
-  storage_account_id = azurerm_storage_account.sa.id
+# resource "azurerm_storage_account_network_rules" "runner" {
+#   storage_account_id = azurerm_storage_account.sa.id
 
-  default_action             = "Deny"
-  ip_rules                   = [data.http.ip.response_body]
-  #virtual_network_subnet_ids = [azurerm_subnet.functions.id]
-  bypass                     = ["AzureServices"]
-}
+#   default_action             = "Deny"
+#   ip_rules                   = [data.http.ip.response_body]
+#   #virtual_network_subnet_ids = [azurerm_subnet.functions.id]
+#   bypass                     = ["AzureServices"]
+# }
 
 resource "azurerm_storage_container" "hosts" {
   name                  = "azure-webjobs-hosts"
@@ -189,15 +189,15 @@ resource "azurerm_service_plan" "asp" {
 }
 
 resource "azurerm_linux_function_app" "func" {
-  depends_on = [
-    azurerm_private_endpoint.peblob,
-    azurerm_private_endpoint.pefile,
-    azurerm_private_dns_zone_virtual_network_link.blob,
-    azurerm_private_dns_zone_virtual_network_link.file,
-    #azurerm_storage_share.func,
-    azurerm_storage_container.hosts,
-    azurerm_storage_container.secrets
-  ]
+#   depends_on = [
+#     azurerm_private_endpoint.peblob,
+#     azurerm_private_endpoint.pefile,
+#     azurerm_private_dns_zone_virtual_network_link.blob,
+#     azurerm_private_dns_zone_virtual_network_link.file,
+#     #azurerm_storage_share.func,
+#     azurerm_storage_container.hosts,
+#     azurerm_storage_container.secrets
+#   ]
   name                = local.func_name
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location

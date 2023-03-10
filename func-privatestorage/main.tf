@@ -58,7 +58,7 @@ resource "azurerm_subnet" "pe" {
   virtual_network_name  = azurerm_virtual_network.default.name
   address_prefixes      = ["10.4.0.0/26"]
 
-  enforce_private_link_endpoint_network_policies = true
+  private_endpoint_network_policies_enabled = true
 
 }
 
@@ -150,23 +150,23 @@ resource "azurerm_storage_account" "sa" {
   tags = local.tags
 }
 
-resource "azurerm_storage_container" "hosts" {
-  name                  = "azure-webjobs-hosts"
-  storage_account_name  = azurerm_storage_account.sa.name
-  container_access_type = "private"
-}
+# resource "azurerm_storage_container" "hosts" {
+#   name                  = "azure-webjobs-hosts"
+#   storage_account_name  = azurerm_storage_account.sa.name
+#   container_access_type = "private"
+# }
 
-resource "azurerm_storage_container" "secrets" {
-  name                  = "azure-webjobs-secrets"
-  storage_account_name  = azurerm_storage_account.sa.name
-  container_access_type = "private"
-}
+# resource "azurerm_storage_container" "secrets" {
+#   name                  = "azure-webjobs-secrets"
+#   storage_account_name  = azurerm_storage_account.sa.name
+#   container_access_type = "private"
+# }
 
-resource "azurerm_storage_share" "func" {
-  name                 = local.func_name
-  storage_account_name = azurerm_storage_account.sa.name
-  quota                = 1
-}
+# resource "azurerm_storage_share" "func" {
+#   name                 = local.func_name
+#   storage_account_name = azurerm_storage_account.sa.name
+#   quota                = 1
+# }
 resource "azurerm_service_plan" "asp" {
   name                = "asp-${local.func_name}"
   resource_group_name = azurerm_resource_group.rg.name
@@ -181,9 +181,9 @@ resource "azurerm_linux_function_app" "func" {
     azurerm_private_endpoint.pefile,
     azurerm_private_dns_zone_virtual_network_link.blob,
     azurerm_private_dns_zone_virtual_network_link.file,
-    azurerm_storage_share.func,
-    azurerm_storage_container.hosts,
-    azurerm_storage_container.secrets
+    # azurerm_storage_share.func,
+    # azurerm_storage_container.hosts,
+    # azurerm_storage_container.secrets
   ]
   name                = local.func_name
   resource_group_name = azurerm_resource_group.rg.name
@@ -195,9 +195,12 @@ resource "azurerm_linux_function_app" "func" {
   virtual_network_subnet_id  = azurerm_subnet.functions.id
   site_config {
     always_on                = true
+    vnet_route_all_enabled    = true
     application_stack {
       node_version = "16"
     }
-
+  }
+  app_settings = {
+    "WEBSITE_CONTENTOVERVNET"         = "1"
   }
 }

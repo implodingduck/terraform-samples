@@ -152,8 +152,8 @@ resource "azurerm_storage_account" "sa" {
 
 resource "azurerm_service_plan" "asp" {
   name                = "asp-${local.func_name}"
-  resource_group_name = azurerm_resource_group.example.name
-  location            = azurerm_resource_group.example.location
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
   os_type             = "Linux"
   sku_name            = "EP1"
 }

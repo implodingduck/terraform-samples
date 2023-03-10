@@ -215,5 +215,7 @@ resource "azurerm_linux_function_app" "func" {
   }
   app_settings = {
     "WEBSITE_CONTENTOVERVNET"         = "1"
+    "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"       = azurerm_storage_account.sa.primary_connection_string
+    "WEBSITE_CONTENTSHARE"                           = "${local.func_name}"
   }
 }

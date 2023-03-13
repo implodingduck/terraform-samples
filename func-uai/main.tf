@@ -138,3 +138,51 @@ resource "azurerm_role_assignment" "data" {
   role_definition_name = "Storage Blob Data Owner"
   principal_id         = azurerm_user_assigned_identity.uai.principal_id  
 }
+
+resource "local_file" "localsettings" {
+    content     = <<-EOT
+{
+  "IsEncrypted": false,
+  "Values": {
+    "FUNCTIONS_WORKER_RUNTIME": "node",
+    "AzureWebJobsStorage": ""
+  }
+}
+EOT
+    filename = "func/local.settings.json"
+}
+
+resource "null_resource" "publish_func" {
+  depends_on = [
+    local_file.localsettings
+  ]
+  triggers = {
+    index = "${timestamp()}"
+  }
+  provisioner "local-exec" {
+    command = "cd func && npm install"
+  }
+}
+
+data "archive_file" "func" {
+  depends_on = [
+    null_resource.publish_func
+  ]
+  type        = "zip"
+  source_dir  = "func"
+  output_path = "func.zip"
+}
+
+resource "null_resource" "azdeploy" {
+  depends_on = [
+    azurerm_linux_function_app.func
+  ]
+  triggers = {
+    index = "${timestamp()}"
+  }
+  provisioner "local-exec" {
+    command = "az functionapp deployment source config-zip -g ${azurerm_resource_group.rg.name} -n ${local.func_name} --src ${data.archive_file.func.output_path}"
+  }
+}
+
+

@@ -96,13 +96,17 @@ resource "azurerm_service_plan" "asp" {
 }
 
 resource "azurerm_linux_function_app" "func" {
-
+  depends_on = [
+    azurerm_storage_container.hosts,
+    azurerm_storage_container.secrets,
+    azurerm_role_assignment.data
+  ]
   name                = local.func_name
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
 
   storage_account_name       = azurerm_storage_account.sa.name
-  storage_account_access_key = azurerm_storage_account.sa.primary_access_key
+  storage_uses_managed_identity = "true"
   service_plan_id            = azurerm_service_plan.asp.id
 
   functions_extension_version = "~4"

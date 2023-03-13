@@ -82,6 +82,12 @@ resource "azurerm_storage_container" "secrets" {
   container_access_type = "private"
 }
 
+resource "azurerm_storage_container" "container" {
+  name                  = "function"
+  storage_account_name  = azurerm_storage_account.sa.name
+  container_access_type = "private"
+}
+
 resource "azurerm_storage_share" "func" {
   name                 = local.func_name
   storage_account_name = azurerm_storage_account.sa.name
@@ -120,7 +126,7 @@ resource "azurerm_linux_function_app" "func" {
   app_settings = {
     "AzureWebJobsStorage__credential" = "managedidentity"
     "AzureWebJobsStorage__clientId" = azurerm_user_assigned_identity.uai.client_id
-    "SCM_DO_BUILD_DURING_DEPLOYMENT" = "0"
+    "WEBSITE_RUN_FROM_PACKAGE" = azurerm_storage_blob.blob.url
   }
   identity {
     type         = "UserAssigned"
@@ -174,16 +180,24 @@ data "archive_file" "func" {
   output_path = "func.zip"
 }
 
-resource "null_resource" "azdeploy" {
-  depends_on = [
-    azurerm_linux_function_app.func
-  ]
-  triggers = {
-    index = "${timestamp()}"
-  }
-  provisioner "local-exec" {
-    command = "az functionapp deployment source config-zip -g ${azurerm_resource_group.rg.name} -n ${local.func_name} --src ${data.archive_file.func.output_path}"
-  }
-}
+# resource "null_resource" "azdeploy" {
+#   depends_on = [
+#     azurerm_linux_function_app.func
+#   ]
+#   triggers = {
+#     index = "${timestamp()}"
+#   }
+#   provisioner "local-exec" {
+#     command = "az functionapp deployment source config-zip -g ${azurerm_resource_group.rg.name} -n ${local.func_name} --src ${data.archive_file.func.output_path}"
+#   }
+# }
 
+resource "azurerm_storage_blob" "blob" {
+  name                   = "${local.func_name}.zip"
+  storage_account_name   = azurerm_storage_account.sa.name
+  storage_container_name = azurerm_storage_container.container.name
+  type                   = "Block"
+  source                 = "func.zip"
+  content_md5            = data.archive_file.func.output_md5
+}
 

@@ -148,7 +148,7 @@ resource "azurerm_storage_account" "sa" {
   location                 = azurerm_resource_group.rg.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
-  allow_nested_items_to_be_public = false
+
   tags = local.tags
 }
 
@@ -205,6 +205,7 @@ resource "azurerm_linux_function_app" "func" {
   storage_account_access_key = azurerm_storage_account.sa.primary_access_key
   service_plan_id            = azurerm_service_plan.asp.id
   #virtual_network_subnet_id  = azurerm_subnet.functions.id
+  functions_extension_version = "~4"
   site_config {
     always_on                = true
     #vnet_route_all_enabled    = true
@@ -213,8 +214,7 @@ resource "azurerm_linux_function_app" "func" {
     }
   }
   app_settings = {
-    "FUNCTIONS_WORKER_RUNTIME" = "node"
-    "FUNCTIONS_EXTENSION_VERSION" = "~4"
+
     #"WEBSITE_CONTENTOVERVNET"         = "1"
     #"WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"       = azurerm_storage_account.sa.primary_connection_string
     #"WEBSITE_CONTENTSHARE"                           = "${local.func_name}"

@@ -184,7 +184,7 @@ resource "azurerm_service_plan" "asp" {
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
   os_type             = "Linux"
-  sku_name            = "EP1"
+  sku_name            = "Y1"
 }
 
 resource "azurerm_linux_function_app" "func" {
@@ -218,5 +218,8 @@ resource "azurerm_linux_function_app" "func" {
     #"WEBSITE_CONTENTOVERVNET"         = "1"
     #"WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"       = azurerm_storage_account.sa.primary_connection_string
     #"WEBSITE_CONTENTSHARE"                           = "${local.func_name}"
+  }
+  identity {
+    type         = "SystemAssigned"
   }
 }

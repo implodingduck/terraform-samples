@@ -106,41 +106,50 @@ resource "azurerm_private_dns_zone_virtual_network_link" "file" {
   virtual_network_id    = azurerm_virtual_network.default.id
 }
 
-# resource "azurerm_private_endpoint" "peblob" {
-#   name                = "pe-blob-sa${local.func_name}"
-#   location            = azurerm_resource_group.rg.location
-#   resource_group_name = azurerm_resource_group.rg.name
-#   subnet_id           = azurerm_subnet.pe.id
+resource "azurerm_private_endpoint" "peblob" {
+  name                = "pe-blob-sa${local.func_name}"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+  subnet_id           = azurerm_subnet.pe.id
 
-#   private_service_connection {
-#     name                           = "pe-connection-blob-sa${local.func_name}"
-#     private_connection_resource_id = azurerm_storage_account.sa.id
-#     is_manual_connection           = false
-#     subresource_names              = ["blob"]
-#   }
-#   private_dns_zone_group {
-#     name                 = azurerm_private_dns_zone.blob.name
-#     private_dns_zone_ids = [azurerm_private_dns_zone.blob.id]
-#   }
-# }
+  private_service_connection {
+    name                           = "pe-connection-blob-sa${local.func_name}"
+    private_connection_resource_id = azurerm_storage_account.sa.id
+    is_manual_connection           = false
+    subresource_names              = ["blob"]
+  }
+  private_dns_zone_group {
+    name                 = azurerm_private_dns_zone.blob.name
+    private_dns_zone_ids = [azurerm_private_dns_zone.blob.id]
+  }
+}
 
-# resource "azurerm_private_endpoint" "pefile" {
-#   name                = "pe-file-sa${local.func_name}"
-#   location            = azurerm_resource_group.rg.location
-#   resource_group_name = azurerm_resource_group.rg.name
-#   subnet_id           = azurerm_subnet.pe.id
+resource "azurerm_private_endpoint" "pefile" {
+  name                = "pe-file-sa${local.func_name}"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+  subnet_id           = azurerm_subnet.pe.id
 
-#   private_service_connection {
-#     name                           = "pe-connection-file-sa${local.func_name}"
-#     private_connection_resource_id = azurerm_storage_account.sa.id
-#     is_manual_connection           = false
-#     subresource_names              = ["file"]
-#   }
-#   private_dns_zone_group {
-#     name                 = azurerm_private_dns_zone.file.name
-#     private_dns_zone_ids = [azurerm_private_dns_zone.file.id]
-#   }
-# }
+  private_service_connection {
+    name                           = "pe-connection-file-sa${local.func_name}"
+    private_connection_resource_id = azurerm_storage_account.sa.id
+    is_manual_connection           = false
+    subresource_names              = ["file"]
+  }
+  private_dns_zone_group {
+    name                 = azurerm_private_dns_zone.file.name
+    private_dns_zone_ids = [azurerm_private_dns_zone.file.id]
+  }
+}
+
+
+resource "azurerm_application_insights" "app" {
+  name                = "${local.func_name}-insights"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
+  application_type    = "other"
+  workspace_id        = data.azurerm_log_analytics_workspace.default.id
+}
 
 resource "azurerm_storage_account" "sa" {
   name                     = "sa${local.func_name}"
@@ -153,26 +162,26 @@ resource "azurerm_storage_account" "sa" {
 }
 
 
-# resource "azurerm_storage_account_network_rules" "runner" {
-#   storage_account_id = azurerm_storage_account.sa.id
+resource "azurerm_storage_account_network_rules" "runner" {
+  storage_account_id = azurerm_storage_account.sa.id
 
-#   default_action             = "Deny"
-#   ip_rules                   = [data.http.ip.response_body]
-#   #virtual_network_subnet_ids = [azurerm_subnet.functions.id]
-#   bypass                     = ["AzureServices"]
-# }
+  default_action             = "Deny"
+  ip_rules                   = [data.http.ip.response_body]
+  #virtual_network_subnet_ids = [azurerm_subnet.functions.id]
+  bypass                     = ["AzureServices"]
+}
 
-# resource "azurerm_storage_container" "hosts" {
-#   name                  = "azure-webjobs-hosts"
-#   storage_account_name  = azurerm_storage_account.sa.name
-#   container_access_type = "private"
-# }
+resource "azurerm_storage_container" "hosts" {
+  name                  = "azure-webjobs-hosts"
+  storage_account_name  = azurerm_storage_account.sa.name
+  container_access_type = "private"
+}
 
-# resource "azurerm_storage_container" "secrets" {
-#   name                  = "azure-webjobs-secrets"
-#   storage_account_name  = azurerm_storage_account.sa.name
-#   container_access_type = "private"
-# }
+resource "azurerm_storage_container" "secrets" {
+  name                  = "azure-webjobs-secrets"
+  storage_account_name  = azurerm_storage_account.sa.name
+  container_access_type = "private"
+}
 
 # resource "azurerm_storage_share" "func" {
 #   name                 = local.func_name
@@ -184,19 +193,19 @@ resource "azurerm_service_plan" "asp" {
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
   os_type             = "Linux"
-  sku_name            = "Y1"
+  sku_name            = "EP1"
 }
 
 resource "azurerm_linux_function_app" "func" {
-#   depends_on = [
-#     azurerm_private_endpoint.peblob,
-#     azurerm_private_endpoint.pefile,
-#     azurerm_private_dns_zone_virtual_network_link.blob,
-#     azurerm_private_dns_zone_virtual_network_link.file,
-#     #azurerm_storage_share.func,
-#     azurerm_storage_container.hosts,
-#     azurerm_storage_container.secrets
-#   ]
+  depends_on = [
+    azurerm_private_endpoint.peblob,
+    azurerm_private_endpoint.pefile,
+    azurerm_private_dns_zone_virtual_network_link.blob,
+    azurerm_private_dns_zone_virtual_network_link.file,
+    #azurerm_storage_share.func,
+    azurerm_storage_container.hosts,
+    azurerm_storage_container.secrets
+  ]
   name                = local.func_name
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
@@ -204,18 +213,19 @@ resource "azurerm_linux_function_app" "func" {
   storage_account_name       = azurerm_storage_account.sa.name
   storage_account_access_key = azurerm_storage_account.sa.primary_access_key
   service_plan_id            = azurerm_service_plan.asp.id
-  #virtual_network_subnet_id  = azurerm_subnet.functions.id
+  virtual_network_subnet_id  = azurerm_subnet.functions.id
   functions_extension_version = "~4"
   site_config {
-    always_on                = true
-    #vnet_route_all_enabled    = true
+    application_insights_key = azurerm_application_insights.app.instrumentation_key
+    application_insights_connection_string = azurerm_application_insights.app.connection_string
+    vnet_route_all_enabled    = true
     application_stack {
       node_version = "16"
     }
   }
   app_settings = {
 
-    #"WEBSITE_CONTENTOVERVNET"         = "1"
+    "WEBSITE_CONTENTOVERVNET"         = "1"
     #"WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"       = azurerm_storage_account.sa.primary_connection_string
     #"WEBSITE_CONTENTSHARE"                           = "${local.func_name}"
   }

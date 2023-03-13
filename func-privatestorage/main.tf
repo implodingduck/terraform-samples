@@ -107,6 +107,10 @@ resource "azurerm_private_dns_zone_virtual_network_link" "file" {
 }
 
 resource "azurerm_private_endpoint" "peblob" {
+  depends_on = [
+    azurerm_storage_container.hosts,
+    azurerm_storage_container.secrets
+  ]
   name                = "pe-blob-sa${local.func_name}"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
@@ -125,6 +129,9 @@ resource "azurerm_private_endpoint" "peblob" {
 }
 
 resource "azurerm_private_endpoint" "pefile" {
+  depends_on = [
+    azurerm_storage_share.func
+  ]
   name                = "pe-file-sa${local.func_name}"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
@@ -163,6 +170,10 @@ resource "azurerm_storage_account" "sa" {
 
 
 resource "azurerm_storage_account_network_rules" "runner" {
+  depends_on = [
+    azurerm_private_endpoint.peblob,
+    azurerm_private_endpoint.pefile
+  ]
   storage_account_id = azurerm_storage_account.sa.id
 
   default_action             = "Deny"

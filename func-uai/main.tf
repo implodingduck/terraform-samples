@@ -120,6 +120,7 @@ resource "azurerm_linux_function_app" "func" {
   app_settings = {
     "AzureWebJobsStorage__credential" = "managedidentity"
     "AzureWebJobsStorage__clientId" = azurerm_user_assigned_identity.uai.client_id
+    "SCM_DO_BUILD_DURING_DEPLOYMENT" = "0"
   }
   identity {
     type         = "UserAssigned"

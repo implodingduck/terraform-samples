@@ -126,7 +126,7 @@ resource "azurerm_linux_function_app" "func" {
   app_settings = {
     "AzureWebJobsStorage__credential" = "managedidentity"
     "AzureWebJobsStorage__clientId" = azurerm_user_assigned_identity.uai.client_id
-    "WEBSITE_RUN_FROM_PACKAGE" = azurerm_storage_blob.blob.url
+    "WEBSITE_RUN_FROM_PACKAGE" = "1" #azurerm_storage_blob.blob.url
     "WEBSITE_RUN_FROM_PACKAGE_BLOB_MI_RESOURCE_ID" = azurerm_user_assigned_identity.uai.id
   }
   identity {
@@ -181,24 +181,24 @@ data "archive_file" "func" {
   output_path = "func.zip"
 }
 
-# resource "null_resource" "azdeploy" {
-#   depends_on = [
-#     azurerm_linux_function_app.func
-#   ]
-#   triggers = {
-#     index = "${timestamp()}"
-#   }
-#   provisioner "local-exec" {
-#     command = "az functionapp deployment source config-zip -g ${azurerm_resource_group.rg.name} -n ${local.func_name} --src ${data.archive_file.func.output_path}"
-#   }
-# }
-
-resource "azurerm_storage_blob" "blob" {
-  name                   = "${local.func_name}.zip"
-  storage_account_name   = azurerm_storage_account.sa.name
-  storage_container_name = azurerm_storage_container.container.name
-  type                   = "Block"
-  source                 = "func.zip"
-  content_md5            = data.archive_file.func.output_md5
+resource "null_resource" "azdeploy" {
+  depends_on = [
+    azurerm_linux_function_app.func
+  ]
+  triggers = {
+    index = "${timestamp()}"
+  }
+  provisioner "local-exec" {
+    command = "az functionapp deployment source config-zip -g ${azurerm_resource_group.rg.name} -n ${local.func_name} --src ${data.archive_file.func.output_path} --build-remote=false"
+  }
 }
+
+# resource "azurerm_storage_blob" "blob" {
+#   name                   = "${local.func_name}.zip"
+#   storage_account_name   = azurerm_storage_account.sa.name
+#   storage_container_name = azurerm_storage_container.container.name
+#   type                   = "Block"
+#   source                 = "func.zip"
+#   content_md5            = data.archive_file.func.output_md5
+# }
 

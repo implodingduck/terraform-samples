@@ -182,7 +182,7 @@ resource "null_resource" "azdeploy" {
     index = "${timestamp()}"
   }
   provisioner "local-exec" {
-    command = "az functionapp deployment source config-zip -g ${azurerm_resource_group.rg.name} -n ${local.func_name} --src ${data.archive_file.func.output_path} --build-remote false"
+    command = "az functionapp deployment source config-zip -g ${azurerm_resource_group.rg.name} -n ${local.func_name} --src ${data.archive_file.func.output_path} --build-remote 0"
   }
 }
 

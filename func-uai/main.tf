@@ -98,7 +98,7 @@ resource "azurerm_service_plan" "asp" {
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
   os_type             = "Linux"
-  sku_name            = "S1"
+  sku_name            = "Y1"
 }
 
 resource "azurerm_linux_function_app" "func" {
@@ -126,7 +126,7 @@ resource "azurerm_linux_function_app" "func" {
   app_settings = {
     "AzureWebJobsStorage__credential" = "managedidentity"
     "AzureWebJobsStorage__clientId" = azurerm_user_assigned_identity.uai.client_id
-    "WEBSITE_RUN_FROM_PACKAGE" = azurerm_storage_blob.blob.url
+    "WEBSITE_RUN_FROM_PACKAGE" = "1"
     "WEBSITE_RUN_FROM_PACKAGE_BLOB_MI_RESOURCE_ID" = azurerm_user_assigned_identity.uai.id
   }
   identity {
@@ -168,25 +168,25 @@ resource "null_resource" "publish_func" {
     index = "${timestamp()}"
   }
   provisioner "local-exec" {
-    command = "cd func && npm install"
+    command = "cd func && npm install && func azure functionapp publish ${azurerm_linux_function_app.func.name}"
   }
 }
 
-data "archive_file" "func" {
-  depends_on = [
-    null_resource.publish_func
-  ]
-  type        = "zip"
-  source_dir  = "func"
-  output_path = "func.zip"
-}
+# data "archive_file" "func" {
+#   depends_on = [
+#     null_resource.publish_func
+#   ]
+#   type        = "zip"
+#   source_dir  = "func"
+#   output_path = "func.zip"
+# }
 
-resource "azurerm_storage_blob" "blob" {
-  name                   = "${local.func_name}.zip"
-  storage_account_name   = azurerm_storage_account.sa.name
-  storage_container_name = azurerm_storage_container.container.name
-  type                   = "Block"
-  source                 = "func.zip"
-  content_md5            = data.archive_file.func.output_md5
-}
+# resource "azurerm_storage_blob" "blob" {
+#   name                   = "${local.func_name}.zip"
+#   storage_account_name   = azurerm_storage_account.sa.name
+#   storage_container_name = azurerm_storage_container.container.name
+#   type                   = "Block"
+#   source                 = "func.zip"
+#   content_md5            = data.archive_file.func.output_md5
+# }
 

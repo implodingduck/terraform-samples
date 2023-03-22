@@ -13,9 +13,9 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
     if not name:
         try:
             req_body = req.get_json()
+            logging.info(f"req_body={req_body}")
             name = req_body.get('name')
-
-        except ValueError:
+        except Exception:
             pass
 
             

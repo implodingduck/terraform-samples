@@ -86,6 +86,14 @@ resource "azurerm_subnet" "functions" {
  
 }
 
+resource "azurerm_subnet" "vms" {
+  name                  = "snet-vms-${local.loc_for_naming}"
+  resource_group_name   = azurerm_virtual_network.default.resource_group_name
+  virtual_network_name  = azurerm_virtual_network.default.name
+  address_prefixes      = ["10.4.0.128/26"]
+ 
+}
+
 resource "azurerm_private_dns_zone" "blob" {
   name                      = "privatelink.blob.core.windows.net"
   resource_group_name       = azurerm_resource_group.rg.name
@@ -240,9 +248,11 @@ resource "azurerm_linux_function_app" "func" {
   }
   app_settings = {
 
-    "WEBSITE_CONTENTOVERVNET"         = "1"
-    "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING"       = azurerm_storage_account.sa.primary_connection_string
-    "WEBSITE_CONTENTSHARE"                           = "${local.func_name}"
+    "WEBSITE_CONTENTOVERVNET" = "1"
+    "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING" = azurerm_storage_account.sa.primary_connection_string
+    "WEBSITE_CONTENTSHARE"                     = "${local.func_name}"
+    "HTTP_PROXY"  = "http://${azurerm_network_interface.example.private_ip_address}:8888/"
+    "HTTPS_PROXY" = "http://${azurerm_network_interface.example.private_ip_address}:8888/"
   }
   identity {
     type         = "SystemAssigned"
@@ -271,5 +281,51 @@ resource "null_resource" "publish_func" {
   }
   provisioner "local-exec" {
     command = "cd func && func azure functionapp publish ${azurerm_linux_function_app.func.name}"
+  }
+}
+
+data "template_file" "vm-cloud-init" {
+  template = file("${path.module}/install-tinyproxy.sh")
+}
+
+resource "azurerm_network_interface" "example" {
+  name                = "example-nic"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+
+  ip_configuration {
+    name                          = "internal"
+    subnet_id                     = azurerm_subnet.default.id
+    private_ip_address_allocation = "Dynamic"
+  }
+
+}
+
+resource "azurerm_linux_virtual_machine" "example" {
+  name                = "vm-${local.cluster_name}-proxy"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
+  size                = "Standard_B1s"
+  admin_username      = "azureuser"
+  custom_data         = base64encode(data.template_file.vm-cloud-init.rendered)
+
+  network_interface_ids = [
+    azurerm_network_interface.example.id,
+  ]
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-focal"
+    sku       = "20_04-lts-gen2"
+    version   = "latest"
+  }
+  admin_ssh_key {
+    public_key = file("${path.module}/ssh_rsa.pub")
+    username   = "azureuser"
   }
 }

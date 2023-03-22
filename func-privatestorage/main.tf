@@ -270,6 +270,6 @@ resource "null_resource" "publish_func" {
     index = "${timestamp()}"
   }
   provisioner "local-exec" {
-    command = "func azure functionapp publish ${azurerm_linux_function_app.func.name}"
+    command = "cd func && func azure functionapp publish ${azurerm_linux_function_app.func.name}"
   }
 }

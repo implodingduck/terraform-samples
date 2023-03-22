@@ -254,7 +254,7 @@ resource "azurerm_linux_function_app" "func" {
     "BUILD_PROXY"  = "http://${azurerm_network_interface.example.private_ip_address}:8888/"
     "POST_BUILD_SCRIPT_PATH"         = "postbuild.sh"
     "PRE_BUILD_SCRIPT_PATH"         = "prebuild.sh"
-    "CUSTOM_REQUIREMENTSTXT_PATH"  = "emptyrequirements.txt"
+    "PIP_INDEX_URL" = "https://implodingduck.github.io"
   }
   identity {
     type         = "SystemAssigned"

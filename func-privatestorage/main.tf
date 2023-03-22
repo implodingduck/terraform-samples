@@ -217,6 +217,7 @@ resource "azurerm_service_plan" "asp" {
   location            = azurerm_resource_group.rg.location
   os_type             = "Linux"
   sku_name            = "EP1"
+  maximum_elastic_worker_count = 3
 }
 
 resource "azurerm_linux_function_app" "func" {

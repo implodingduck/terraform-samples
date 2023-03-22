@@ -235,7 +235,7 @@ resource "azurerm_linux_function_app" "func" {
     application_insights_connection_string = azurerm_application_insights.app.connection_string
     vnet_route_all_enabled    = true
     application_stack {
-      node_version = "16"
+      python_version = "3.9"
     }
   }
   app_settings = {
@@ -246,5 +246,30 @@ resource "azurerm_linux_function_app" "func" {
   }
   identity {
     type         = "SystemAssigned"
+  }
+}
+
+resource "local_file" "localsettings" {
+    content     = <<-EOT
+{
+  "IsEncrypted": false,
+  "Values": {
+    "FUNCTIONS_WORKER_RUNTIME": "python",
+    "AzureWebJobsStorage": ""
+  }
+}
+EOT
+    filename = "func/local.settings.json"
+}
+
+resource "null_resource" "publish_func" {
+  depends_on = [
+    local_file.localsettings
+  ]
+  triggers = {
+    index = "${timestamp()}"
+  }
+  provisioner "local-exec" {
+    command = "func azure functionapp publish ${azurerm_linux_function_app.func.name}"
   }
 }

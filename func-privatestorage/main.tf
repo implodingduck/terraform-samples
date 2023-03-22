@@ -251,8 +251,9 @@ resource "azurerm_linux_function_app" "func" {
     "WEBSITE_CONTENTOVERVNET" = "1"
     "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING" = azurerm_storage_account.sa.primary_connection_string
     "WEBSITE_CONTENTSHARE"                     = "${local.func_name}"
-    "HTTP_PROXY"  = "http://${azurerm_network_interface.example.private_ip_address}:8888/"
-    "HTTPS_PROXY" = "http://${azurerm_network_interface.example.private_ip_address}:8888/"
+    "BUILD_PROXY"  = "http://${azurerm_network_interface.example.private_ip_address}:8888/"
+    POST_BUILD_SCRIPT_PATH         = "postbuild.sh"
+    PRE_BUILD_SCRIPT_PATH         = "prebuild.sh"
   }
   identity {
     type         = "SystemAssigned"

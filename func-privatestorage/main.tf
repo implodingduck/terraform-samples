@@ -245,6 +245,7 @@ resource "azurerm_linux_function_app" "func" {
     application_stack {
       python_version = "3.9"
     }
+    elastic_instance_minimum = 2
   }
   app_settings = {
 

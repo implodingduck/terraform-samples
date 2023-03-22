@@ -254,6 +254,7 @@ resource "azurerm_linux_function_app" "func" {
     "BUILD_PROXY"  = "http://${azurerm_network_interface.example.private_ip_address}:8888/"
     "POST_BUILD_SCRIPT_PATH"         = "postbuild.sh"
     "PRE_BUILD_SCRIPT_PATH"         = "prebuild.sh"
+    "DISABLE_PYTHON_BUILD"  = "true"
   }
   identity {
     type         = "SystemAssigned"

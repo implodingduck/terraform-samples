@@ -295,7 +295,7 @@ resource "azurerm_network_interface" "example" {
 
   ip_configuration {
     name                          = "internal"
-    subnet_id                     = azurerm_subnet.default.id
+    subnet_id                     = azurerm_subnet.vms.id
     private_ip_address_allocation = "Dynamic"
   }
 

@@ -255,13 +255,15 @@ resource "azurerm_linux_function_app" "func" {
     "WEBSITE_CONTENTSHARE"                     = "${local.func_name}"
     "HTTP_PROXY"  = "http://${azurerm_network_interface.example.private_ip_address}:8888/"
     "HTTPS_PROXY"  = "http://${azurerm_network_interface.example.private_ip_address}:8888/"
-
+    "NO_PROXY" = "windows.net"
     "POST_BUILD_SCRIPT_PATH"         = "postbuild.sh"
     "PRE_BUILD_SCRIPT_PATH"         = "prebuild.sh"
     "ORYX_APP_TYPE" = "functions"
     "PLATFORM_NAME" = "python"
     "PLATFORM_VERSION" = "3.9.7"
     "DISABLE_CHECKERS" = "true"
+    "ORYX_DISABLE_TELEMETRY" = "true"
+
   }
   identity {
     type         = "SystemAssigned"

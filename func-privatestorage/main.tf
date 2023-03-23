@@ -255,7 +255,7 @@ resource "azurerm_linux_function_app" "func" {
     "WEBSITE_CONTENTSHARE"                     = "${local.func_name}"
     "HTTP_PROXY"  = "http://${azurerm_network_interface.example.private_ip_address}:8888/"
     "HTTPS_PROXY"  = "http://${azurerm_network_interface.example.private_ip_address}:8888/"
-    "NO_PROXY" = "windows.net"
+    "NO_PROXY" = "blob.core.windows.net,localhost,127.0.0.1,file.core.windows.net"
     "POST_BUILD_SCRIPT_PATH"         = "postbuild.sh"
     "PRE_BUILD_SCRIPT_PATH"         = "prebuild.sh"
     "ORYX_APP_TYPE" = "functions"
@@ -267,6 +267,13 @@ resource "azurerm_linux_function_app" "func" {
   }
   identity {
     type         = "SystemAssigned"
+  }
+  lifecycle {
+    ignore_changes = [
+      tags
+    ]
+
+
   }
 }
 

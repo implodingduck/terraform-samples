@@ -28,6 +28,13 @@ locals {
   }
 }
 
+resource "random_string" "unique" {
+  length  = 8
+  special = false
+  upper   = false
+}
+
+
 data "azurerm_resource_group" "rg" {
   name = "rg-deleteme-srping"
 }

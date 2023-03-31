@@ -36,7 +36,7 @@ resource "random_string" "unique" {
 
 
 data "azurerm_resource_group" "rg" {
-  name = "rg-deleteme-srping"
+  name = "rg-deleteme-spring"
 }
 
 data "azurerm_subnet" "vms" {

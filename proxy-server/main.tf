@@ -29,7 +29,6 @@ locals {
 }
 
 data "azurerm_resource_group" "rg" {
-  location = "eastus"
   name = "rg-deleteme-srping"
 }
 

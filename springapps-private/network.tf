@@ -23,11 +23,18 @@ resource "azurerm_subnet" "fw" {
   address_prefixes     = ["10.1.0.0/24"]
 }
 
+resource "azurerm_subnet" "fwm" {
+  name                 = "AzureFirewallManagementSubnet"
+  resource_group_name  = azurerm_virtual_network.default.resource_group_name
+  virtual_network_name = azurerm_virtual_network.default.name
+  address_prefixes     = ["10.1.1.0/24"]
+}
+
 resource "azurerm_subnet" "service-runtime" {
   name                  = "snet-service-runtime"
   resource_group_name   = azurerm_virtual_network.default.resource_group_name
   virtual_network_name  = azurerm_virtual_network.default.name
-  address_prefixes      = ["10.1.1.0/24"]
+  address_prefixes      = ["10.1.2.0/24"]
 
 }
 
@@ -52,7 +59,7 @@ resource "azurerm_subnet_route_table_association" "service-runtime" {
 }
 
 resource "azurerm_subnet_network_security_group_association" "service-runtime" {
-  subnet_id                 = azurerm_subnet.apps.id
+  subnet_id                 = azurerm_subnet.service-runtime.id
   network_security_group_id = azurerm_network_security_group.basic.id
 }
 
@@ -61,7 +68,7 @@ resource "azurerm_subnet" "apps" {
   name                  = "snet-apps"
   resource_group_name   = azurerm_virtual_network.default.resource_group_name
   virtual_network_name  = azurerm_virtual_network.default.name
-  address_prefixes      = ["10.1.2.0/24"]
+  address_prefixes      = ["10.1.3.0/24"]
 
 }
 

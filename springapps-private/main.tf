@@ -10,6 +10,7 @@ terraform {
     }
     azapi = {
       source = "azure/azapi"
+      version = "=1.5.0"
     }
   }
 }
@@ -50,21 +51,51 @@ resource "azurerm_role_assignment" "azure-spring-app-resource-provider" {
   principal_id         = "e8de9221-a19c-4c81-b814-fd37c6caf9d2"
 }
 
-resource "azurerm_spring_cloud_service" "this" {
+# resource "azurerm_spring_cloud_service" "this" {
+#   depends_on = [
+#     azurerm_subnet_route_table_association.apps,
+#     azurerm_subnet_route_table_association.service-runtime,
+#   ]
+#   name                = local.name
+#   location            = azurerm_resource_group.rg.location
+#   resource_group_name = azurerm_resource_group.rg.name
+#   sku_name            = "B0"
+
+#   network {
+#     app_subnet_id = azurerm_subnet.apps.id
+#     service_runtime_subnet_id = azurerm_subnet.service-runtime.id
+#     cidr_ranges = ["10.252.0.0/16", "10.253.0.0/16", "10.254.0.1/16"]
+#   }
+#   tags = local.tags
+# }
+
+
+resource "azapi_resource" "azurespringapps" {
   depends_on = [
     azurerm_subnet_route_table_association.apps,
     azurerm_subnet_route_table_association.service-runtime,
   ]
-  name                = local.name
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
-  sku_name            = "B0"
-
-  network {
-    app_subnet_id = azurerm_subnet.apps.id
-    service_runtime_subnet_id = azurerm_subnet.service-runtime.id
-    cidr_ranges = ["10.252.0.0/16", "10.253.0.0/16", "10.254.0.1/16"]
-  }
+  type = "Microsoft.AppPlatform/Spring@2022-12-01"
+  name = local.name
+  location = azurerm_resource_group.rg.location
+  parent_id = azurerm_resource_group.rg.id
   tags = local.tags
+  body = jsonencode({
+    properties = {
+      networkProfile = {
+        appSubnetId = azurerm_subnet.apps.id
+        outboundType = "userDefinedRouting"
+        serviceCidr = "10.252.0.0/16,10.253.0.0/16,10.254.0.1/16"
+        serviceRuntimeSubnetId = azurerm_subnet.service-runtime.id
+      }
+      vnetAddons = {
+        logStreamPublicEndpoint = false
+      }
+      zoneRedundant = false
+    }
+    sku = {
+      name = "B0"
+    }
+  })
 }
 

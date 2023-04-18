@@ -48,7 +48,7 @@ resource "random_string" "unique" {
 resource "azurerm_role_assignment" "azure-spring-app-resource-provider" {
   scope                = azurerm_virtual_network.default.id
   role_definition_name = "Owner"
-  principal_id         = "e8de9221-a19c-4c81-b814-fd37c6caf9d2"
+  principal_id         = "a0f6d82f-c084-4c08-bce5-d50b143d0e88"
 }
 
 # resource "azurerm_spring_cloud_service" "this" {

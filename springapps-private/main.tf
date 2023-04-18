@@ -46,9 +46,15 @@ resource "random_string" "unique" {
 }
 
 resource "azurerm_role_assignment" "azure-spring-app-resource-provider" {
-  scope                = azurerm_virtual_network.default.id
+  scope                = azurerm_resource_group.rg.id
   role_definition_name = "Owner"
   principal_id         = "a0f6d82f-c084-4c08-bce5-d50b143d0e88"
+}
+
+resource "azurerm_role_assignment" "azure-spring-cloud-resource-provider" {
+  scope                = azurerm_resource_group.rg.id
+  role_definition_name = "Owner"
+  principal_id         = "77e44c53-4911-427e-83c2-e2a52f569dee"
 }
 
 # resource "azurerm_spring_cloud_service" "this" {

@@ -94,7 +94,7 @@ resource "azapi_resource" "azurespringapps" {
       zoneRedundant = false
     }
     sku = {
-      name = "B0"
+      name = "S0"
     }
   })
 }

@@ -22,5 +22,6 @@ resource "azurerm_firewall" "this" {
   management_ip_configuration {
     name = "managementconfiguration"
     subnet_id = azurerm_subnet.fwm.id
+    public_ip_address_id = azurerm_public_ip.fw.id
   }
 }

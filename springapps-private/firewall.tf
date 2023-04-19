@@ -42,7 +42,7 @@ resource "azurerm_firewall_policy" "this" {
   location            = azurerm_resource_group.rg.location
 }
 
-resource "azurerm_firewall_network_rule_collection" "example" {
+resource "azurerm_firewall_network_rule_collection" "this" {
   name                = "network-rules-${local.name}"
   azure_firewall_name = azurerm_firewall.this.name
   resource_group_name = azurerm_resource_group.rg.name

@@ -80,6 +80,7 @@ resource "azapi_resource" "azurespringapps" {
   depends_on = [
     azurerm_subnet_route_table_association.apps,
     azurerm_subnet_route_table_association.service-runtime,
+    azurerm_firewall_network_rule_collection.this
   ]
   type = "Microsoft.AppPlatform/Spring@2022-12-01"
   name = local.name

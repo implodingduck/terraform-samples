@@ -96,3 +96,25 @@ resource "azurerm_subnet_network_security_group_association" "apps" {
   subnet_id                 = azurerm_subnet.apps.id
   network_security_group_id = azurerm_network_security_group.basic.id
 }
+
+resource "azurerm_subnet" "aci" {
+  name                  = "snet-aci"
+  resource_group_name   = azurerm_virtual_network.default.resource_group_name
+  virtual_network_name  = azurerm_virtual_network.default.name
+  address_prefixes      = ["10.1.3.0/24"]
+
+}
+
+resource "azurerm_private_dns_zone" "azuremicroservices" {
+  name                = "private.azuremicroservices.io"
+  resource_group_name = azurerm_resource_group.rg.name
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "azuremicroservices" {
+  name                  = "vnet-link-azuremicroservices"
+  resource_group_name   = azurerm_resource_group.rg.name
+  private_dns_zone_name = azurerm_private_dns_zone.azuremicroservices.name
+  virtual_network_id    = azurerm_virtual_network.default.id
+}
+
+

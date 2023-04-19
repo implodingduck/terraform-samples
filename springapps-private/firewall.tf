@@ -34,3 +34,39 @@ resource "azurerm_firewall" "this" {
     public_ip_address_id = azurerm_public_ip.fwm.id
   }
 }
+
+
+resource "azurerm_firewall_policy" "this" {
+  name                = "fwpolicy-${local.name}"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
+}
+
+resource "azurerm_firewall_network_rule_collection" "example" {
+  name                = "network-rules-${local.name}"
+  azure_firewall_name = azurerm_firewall.this.name
+  resource_group_name = azurerm_resource_group.rg.name
+  priority            = 100
+  action              = "Allow"
+
+  rule {
+    name = "allowall"
+
+    source_addresses = [
+      "*",
+    ]
+
+    destination_ports = [
+      "*",
+    ]
+
+    destination_addresses = [
+      "*"
+    ]
+
+    protocols = [
+      "TCP",
+      "UDP",
+    ]
+  }
+}

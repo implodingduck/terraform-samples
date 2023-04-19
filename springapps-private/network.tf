@@ -51,6 +51,13 @@ resource "azurerm_route_table" "service-runtime" {
   }
 
   tags = local.tags
+
+  lifecycle {
+    ignore_changes = [
+        tags,
+        route
+    ]
+  }
 }
 
 resource "azurerm_subnet_route_table_association" "service-runtime" {
@@ -85,6 +92,12 @@ resource "azurerm_route_table" "apps" {
   }
 
   tags = local.tags
+  lifecycle {
+    ignore_changes = [
+        tags,
+        route
+    ]
+  }
 }
 
 resource "azurerm_subnet_route_table_association" "apps" {

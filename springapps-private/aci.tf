@@ -11,8 +11,11 @@ resource "azurerm_container_group" "aci" {
     image  = "bjd145/utils:3.7"
     cpu    = "0.5"
     memory = "1.5"
-
+    ports {
+      port     = 443
+      protocol = "TCP"
+    }
   }
-  
+
   tags = local.tags
 }

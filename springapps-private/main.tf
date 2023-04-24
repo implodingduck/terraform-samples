@@ -116,3 +116,17 @@ resource "azurerm_spring_cloud_app" "this" {
     type = "SystemAssigned"
   }
 }
+
+data "template_file" "deploy" {
+  template = file("deploy.sh.tmpl")
+  vars = {
+    "RESOURCE_GROUP" = azurerm_resource_group.rg.name
+    "SERVICE_NAME"   = jsondecode(azapi_resource.azurespringapps.output).name
+    "APP_NAME"       = azurerm_spring_cloud_app.this.name
+  }
+}
+
+resource "local_file" "deploy" {
+  content  = data.template_file.deploy.rendered
+  filename = "deploy.sh"
+}

@@ -107,3 +107,12 @@ resource "azapi_resource" "azurespringapps" {
   response_export_values = ["*"]
 }
 
+resource "azurerm_spring_cloud_app" "this" {
+  name                = "mysampleapp"
+  resource_group_name = azurerm_resource_group.rg.name
+  service_name        = jsondecode(azapi_resource.azurespringapps.output).name
+
+  identity {
+    type = "SystemAssigned"
+  }
+}

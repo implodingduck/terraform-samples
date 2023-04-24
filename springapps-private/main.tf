@@ -76,33 +76,33 @@ resource "azurerm_role_assignment" "azure-spring-cloud-resource-provider" {
 # }
 
 
-# resource "azapi_resource" "azurespringapps" {
-#   depends_on = [
-#     azurerm_subnet_route_table_association.apps,
-#     azurerm_subnet_route_table_association.service-runtime,
-#     azurerm_firewall_policy_rule_collection_group.this
-#   ]
-#   type      = "Microsoft.AppPlatform/Spring@2022-12-01"
-#   name      = local.name
-#   location  = azurerm_resource_group.rg.location
-#   parent_id = azurerm_resource_group.rg.id
-#   tags      = local.tags
-#   body = jsonencode({
-#     properties = {
-#       networkProfile = {
-#         appSubnetId            = azurerm_subnet.apps.id
-#         outboundType           = "userDefinedRouting"
-#         serviceCidr            = "10.252.0.0/16,10.253.0.0/16,10.254.0.1/16"
-#         serviceRuntimeSubnetId = azurerm_subnet.service-runtime.id
-#       }
-#       vnetAddons = {
-#         logStreamPublicEndpoint = false
-#       }
-#       zoneRedundant = false
-#     }
-#     sku = {
-#       name = "S0"
-#     }
-#   })
-# }
+resource "azapi_resource" "azurespringapps" {
+  depends_on = [
+    azurerm_subnet_route_table_association.apps,
+    azurerm_subnet_route_table_association.service-runtime,
+    azurerm_firewall_policy_rule_collection_group.this
+  ]
+  type      = "Microsoft.AppPlatform/Spring@2022-12-01"
+  name      = local.name
+  location  = azurerm_resource_group.rg.location
+  parent_id = azurerm_resource_group.rg.id
+  tags      = local.tags
+  body = jsonencode({
+    properties = {
+      networkProfile = {
+        appSubnetId            = azurerm_subnet.apps.id
+        outboundType           = "userDefinedRouting"
+        serviceCidr            = "10.252.0.0/16,10.253.0.0/16,10.254.0.1/16"
+        serviceRuntimeSubnetId = azurerm_subnet.service-runtime.id
+      }
+      vnetAddons = {
+        logStreamPublicEndpoint = false
+      }
+      zoneRedundant = false
+    }
+    sku = {
+      name = "S0"
+    }
+  })
+}
 

@@ -104,5 +104,6 @@ resource "azapi_resource" "azurespringapps" {
       name = "S0"
     }
   })
+  response_export_values = ["*"]
 }
 

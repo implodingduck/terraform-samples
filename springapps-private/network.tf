@@ -143,7 +143,7 @@ data "azurerm_lb" "internal" {
   resource_group_name = jsondecode(azapi_resource.azurespringapps.output).properties.networkProfile.serviceRuntimeNetworkResourceGroup
 }
 
-resource "azurerm_dns_a_record" "star" {
+resource "azurerm_private_dns_a_record" "star" {
   name                = "*"
   zone_name           = azurerm_private_dns_zone.azuremicroservices.name
   resource_group_name = azurerm_resource_group.rg.name

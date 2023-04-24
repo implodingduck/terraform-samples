@@ -16,11 +16,6 @@ resource "azurerm_virtual_network" "default" {
   tags = local.tags
 }
 
-resource "azurerm_virtual_network_dns_servers" "this" {
-  virtual_network_id = azurerm_virtual_network.default.id
-  dns_servers        = [azurerm_firewall.this.ip_configuration.0.private_ip_address]
-}
-
 resource "azurerm_subnet" "fw" {
   name                 = "AzureFirewallSubnet"
   resource_group_name  = azurerm_virtual_network.default.resource_group_name

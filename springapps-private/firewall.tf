@@ -67,7 +67,8 @@ resource "azurerm_firewall_policy_rule_collection_group" "this" {
         "AzureCloud",
         "AzureContainerRegistry",
         "Storage",
-        "EventHub"
+        "EventHub",
+        "AzureFrontDoor.FirstParty",
       ]
 
       protocols = [
@@ -116,25 +117,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "this" {
 
   }
 
-  application_rule_collection {
-    name     = "app_rule_collection1"
-    priority = 500
-    action   = "Allow"
-
-    rule {
-      name = "allow443fqdns"
-      protocols {
-        type = "Https"
-        port = 443
-      }
-      source_addresses = [
-        "*"
-      ]
-      destination_addresses = [
-        "AzureFrontDoor.FirstParty",
-
-      ]
-    }
+  
 
 
   }

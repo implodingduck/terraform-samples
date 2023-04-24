@@ -19,7 +19,7 @@ resource "azurerm_firewall" "this" {
   name                = "fw-${local.name}"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
-  firewall_policy_id  = azurerm_firewall_policy.this.id
+ # firewall_policy_id  = azurerm_firewall_policy.this.id
   sku_name            = "AZFW_VNet"
   sku_tier            = "Basic"
 

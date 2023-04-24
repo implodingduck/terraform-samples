@@ -41,6 +41,9 @@ resource "azurerm_firewall_policy" "this" {
   name                = "fwpolicy-${local.name}"
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
+  dns {
+    proxy_enabled = true
+  }
 }
 
 resource "azurerm_firewall_policy_rule_collection_group" "this" {

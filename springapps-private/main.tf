@@ -9,7 +9,7 @@ terraform {
       version = "=3.1.0"
     }
     azapi = {
-      source = "azure/azapi"
+      source  = "azure/azapi"
       version = "=1.5.0"
     }
   }
@@ -36,7 +36,7 @@ data "azurerm_client_config" "current" {}
 resource "azurerm_resource_group" "rg" {
   name     = "rg-spring-apps-${random_string.unique.result}"
   location = "EastUS"
-  tags = local.tags
+  tags     = local.tags
 }
 
 resource "random_string" "unique" {
@@ -82,17 +82,17 @@ resource "azapi_resource" "azurespringapps" {
     azurerm_subnet_route_table_association.service-runtime,
     azurerm_firewall_network_rule_collection.this
   ]
-  type = "Microsoft.AppPlatform/Spring@2022-12-01"
-  name = local.name
-  location = azurerm_resource_group.rg.location
+  type      = "Microsoft.AppPlatform/Spring@2022-12-01"
+  name      = local.name
+  location  = azurerm_resource_group.rg.location
   parent_id = azurerm_resource_group.rg.id
-  tags = local.tags
+  tags      = local.tags
   body = jsonencode({
     properties = {
       networkProfile = {
-        appSubnetId = azurerm_subnet.apps.id
-        outboundType = "userDefinedRouting"
-        serviceCidr = "10.252.0.0/16,10.253.0.0/16,10.254.0.1/16"
+        appSubnetId            = azurerm_subnet.apps.id
+        outboundType           = "userDefinedRouting"
+        serviceCidr            = "10.252.0.0/16,10.253.0.0/16,10.254.0.1/16"
         serviceRuntimeSubnetId = azurerm_subnet.service-runtime.id
       }
       vnetAddons = {

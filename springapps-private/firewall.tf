@@ -19,9 +19,10 @@ resource "azurerm_firewall" "this" {
   name                = "fw-${local.name}"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
+  firewall_policy_id  = azurerm_firewall_policy.this.id
   sku_name            = "AZFW_VNet"
   sku_tier            = "Basic"
-  
+
   ip_configuration {
     name                 = "configuration"
     subnet_id            = azurerm_subnet.fw.id
@@ -29,8 +30,8 @@ resource "azurerm_firewall" "this" {
   }
 
   management_ip_configuration {
-    name = "managementconfiguration"
-    subnet_id = azurerm_subnet.fwm.id
+    name                 = "managementconfiguration"
+    subnet_id            = azurerm_subnet.fwm.id
     public_ip_address_id = azurerm_public_ip.fwm.id
   }
 }
@@ -42,31 +43,123 @@ resource "azurerm_firewall_policy" "this" {
   location            = azurerm_resource_group.rg.location
 }
 
-resource "azurerm_firewall_network_rule_collection" "this" {
-  name                = "network-rules-${local.name}"
-  azure_firewall_name = azurerm_firewall.this.name
-  resource_group_name = azurerm_resource_group.rg.name
-  priority            = 100
-  action              = "Allow"
+resource "azurerm_firewall_policy_rule_collection_group" "this" {
+  name               = "fwpolicy-rcg-${local.name}"
+  firewall_policy_id = azurerm_firewall_policy.this.id
 
-  rule {
-    name = "allowall"
+  priority = 100
+  network_rule_collection {
+    name     = "network_rule_collection1"
+    priority = 300
+    action   = "Allow"
+    rule {
+      name = "allow443servicetags"
+      source_addresses = [
+        "*",
+      ]
 
-    source_addresses = [
-      "*",
-    ]
+      destination_ports = [
+        "443",
+      ]
 
-    destination_ports = [
-      "*",
-    ]
+      destination_addresses = [
+        "AzureCloud",
+        "AzureContainerRegistry",
+        "Storage",
+        "EventHub"
+      ]
 
-    destination_addresses = [
-      "*"
-    ]
+      protocols = [
+        "TCP"
+      ]
+    }
+    rule {
+      name = "allow445servicetags"
 
-    protocols = [
-      "TCP",
-      "UDP",
-    ]
+      source_addresses = [
+        "*",
+      ]
+
+      destination_ports = [
+        "445",
+      ]
+
+      destination_addresses = [
+        "Storage",
+      ]
+
+      protocols = [
+        "TCP"
+      ]
+    }
+    rule {
+      name = "allowubuntuntp"
+
+      source_addresses = [
+        "*",
+      ]
+
+      destination_ports = [
+        "123",
+      ]
+
+      destination_fqdns = [
+        "ntp.ubuntu.com",
+      ]
+
+      protocols = [
+        "UDP"
+      ]
+    }
+
+
   }
+
+  application_rule_collection {
+    name     = "app_rule_collection1"
+    priority = 500
+    action   = "Allow"
+
+    rule {
+      name = "allow443fqdns"
+      protocols {
+        type = "Https"
+        port = 443
+      }
+      source_addresses = [
+        "*"
+      ]
+      destination_fqdns = [
+        "*.azmk8s.io",
+        "mcr.microsoft.com",
+        "*.cdn.mscr.io",
+        "*.data.mcr.microsoft.com",
+        "management.azure.com",
+        "*login.microsoftonline.com",
+        "*login.microsoft.com",
+        "packages.microsoft.com",
+        "acs-mirror.azureedge.net"
+      ]
+    }
+
+    rule {
+      name = "allow80forcerts"
+      protocols {
+        type = "Http"
+        port = 80
+      }
+
+      source_addresses = [
+        "*"
+      ]
+      destination_fqdns = [
+        "mscrl.microsoft.com",
+        "crl.microsoft.com",
+        "crl3.digicert.com",
+      ]
+    }
+
+  }
+
+
 }

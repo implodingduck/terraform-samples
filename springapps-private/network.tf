@@ -138,3 +138,16 @@ resource "azurerm_private_dns_zone_virtual_network_link" "azuremicroservices" {
 }
 
 
+data "azurerm_lb" "internal" {
+  name                = "kubernetes-internal"
+  resource_group_name = jsondecode(azapi_resource.azurespringapps.output).properties.networkProfile.serviceRuntimeNetworkResourceGroup
+}
+
+resource "azurerm_dns_a_record" "star" {
+  name                = "*"
+  zone_name           = azurerm_private_dns_zone.azuremicroservices.name
+  resource_group_name = azurerm_resource_group.rg.name
+  ttl                 = 300
+  records             = [data.azurerm_lb.internal.frontend_ip_configuration[0].private_ip_address]
+}
+

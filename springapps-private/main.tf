@@ -117,6 +117,23 @@ resource "azurerm_spring_cloud_app" "this" {
   }
 }
 
+resource "azurerm_spring_cloud_java_deployment" "this" {
+  name                = "deploy1"
+  spring_cloud_app_id = azurerm_spring_cloud_app.this.id
+  instance_count      = 1
+  jvm_options         = "-Xms1024m -Xmx2048m"
+  runtime_version     = "Java_11"
+
+  quota {
+    cpu    = "1"
+    memory = "2Gi"
+  }
+
+  environment_variables = {
+    "testEnvKey" : "testEnvValue"
+  }
+}
+
 data "template_file" "deploy" {
   template = file("deploy.sh.tmpl")
   vars = {

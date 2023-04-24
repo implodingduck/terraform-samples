@@ -41,9 +41,7 @@ resource "azurerm_firewall_policy" "this" {
   name                = "fwpolicy-${local.name}"
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
-  dns {
-    proxy_enabled = true
-  }
+  
 }
 
 resource "azurerm_firewall_policy_rule_collection_group" "this" {
@@ -106,8 +104,8 @@ resource "azurerm_firewall_policy_rule_collection_group" "this" {
         "123",
       ]
 
-      destination_fqdns = [
-        "ntp.ubuntu.com",
+      destination_addresses = [
+        "*",
       ]
 
       protocols = [
@@ -132,35 +130,12 @@ resource "azurerm_firewall_policy_rule_collection_group" "this" {
       source_addresses = [
         "*"
       ]
-      destination_fqdns = [
-        "*.azmk8s.io",
-        "mcr.microsoft.com",
-        "*.cdn.mscr.io",
-        "*.data.mcr.microsoft.com",
-        "management.azure.com",
-        "*login.microsoftonline.com",
-        "*login.microsoft.com",
-        "packages.microsoft.com",
-        "acs-mirror.azureedge.net"
+      destination_addresses = [
+        "AzureFrontDoor.FirstParty",
+
       ]
     }
 
-    rule {
-      name = "allow80forcerts"
-      protocols {
-        type = "Http"
-        port = 80
-      }
-
-      source_addresses = [
-        "*"
-      ]
-      destination_fqdns = [
-        "mscrl.microsoft.com",
-        "crl.microsoft.com",
-        "crl3.digicert.com",
-      ]
-    }
 
   }
 

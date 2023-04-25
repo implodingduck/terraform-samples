@@ -134,6 +134,11 @@ resource "azurerm_spring_cloud_java_deployment" "this" {
   }
 }
 
+resource "azurerm_spring_cloud_active_deployment" "this" {
+  spring_cloud_app_id = azurerm_spring_cloud_app.this.id
+  deployment_name     = azurerm_spring_cloud_java_deployment.this.name
+}
+
 data "template_file" "deploy" {
   template = file("deploy.sh.tmpl")
   vars = {

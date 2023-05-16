@@ -51,7 +51,7 @@ resource "random_string" "unique" {
 }
 
 resource "azapi_resource" "env" {
-  type = "Microsoft.App/managedEnvironments@2024-04-01-preview"
+  type = "Microsoft.App/managedEnvironments@2022-11-01-preview"
   name = "acaenv-${local.name}"
   location = azurerm_resource_group.rg.location
   parent_id = azurerm_resource_group.rg.id

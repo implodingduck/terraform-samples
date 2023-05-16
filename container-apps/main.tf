@@ -61,7 +61,7 @@ resource "azapi_resource" "env" {
       appLogsConfiguration = {
         destination = "log-analytics"
         logAnalyticsConfiguration = {
-          customerId = azurerm_log_analytics_workspace.default.workspace_id
+          customerId = data.azurerm_log_analytics_workspace.default.workspace_id
         }
       }
       vnetConfiguration = {

@@ -80,11 +80,12 @@ resource "azapi_resource" "env" {
       zoneRedundant = false
     }
   })
+  response_export_values = ["*"]
 }
 
 resource "azurerm_container_app" "example" {
   name                         = "${local.name}"
-  container_app_environment_id = azurerm_container_app_environment.env.id
+  container_app_environment_id = jsondecode(azapi_resource.azurespringapps.output).id
   resource_group_name          = azurerm_resource_group.rg.name
   revision_mode                = "Single"
 

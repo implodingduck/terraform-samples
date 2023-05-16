@@ -43,7 +43,10 @@ resource "azurerm_subnet" "apps" {
   resource_group_name  = azurerm_virtual_network.default.resource_group_name
   virtual_network_name = azurerm_virtual_network.default.name
   address_prefixes     = ["10.1.3.0/24"]
-
+  service_delegation   {
+    name = "Microsoft.App/environments"
+    actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+  }
 }
 
 resource "azurerm_route_table" "apps" {

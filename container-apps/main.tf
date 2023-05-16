@@ -50,8 +50,8 @@ resource "random_string" "unique" {
   upper   = false
 }
 
-resource "azurerm_container_app_environment" "example" {
-  name                           = "my-environment"
+resource "azurerm_container_app_environment" "env" {
+  name                           = "acaenv-${local.name}"
   location                       = azurerm_resource_group.rg.location
   resource_group_name            = azurerm_resource_group.rg.name
   log_analytics_workspace_id     = data.azurerm_log_analytics_workspace.default.id
@@ -60,3 +60,19 @@ resource "azurerm_container_app_environment" "example" {
   tags                           = local.tags
 }
 
+resource "azurerm_container_app" "example" {
+  name                         = "${local.name}"
+  container_app_environment_id = azurerm_container_app_environment.env.id
+  resource_group_name          = azurerm_resource_group.rg.name
+  revision_mode                = "Single"
+
+  template {
+    container {
+      name   = "examplecontainerapp"
+      image  = "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest"
+      cpu    = 0.25
+      memory = "0.5Gi"
+    }
+  }
+  tags                         = local.tags
+}

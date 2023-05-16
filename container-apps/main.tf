@@ -50,14 +50,36 @@ resource "random_string" "unique" {
   upper   = false
 }
 
-resource "azurerm_container_app_environment" "env" {
-  name                           = "acaenv-${local.name}"
-  location                       = azurerm_resource_group.rg.location
-  resource_group_name            = azurerm_resource_group.rg.name
-  log_analytics_workspace_id     = data.azurerm_log_analytics_workspace.default.id
-  infrastructure_subnet_id       = azurerm_subnet.apps.id
-  internal_load_balancer_enabled = true
-  tags                           = local.tags
+resource "azapi_resource" "env" {
+  type = "Microsoft.App/managedEnvironments@2024-04-01-preview"
+  name = "acaenv-${local.name}"
+  location = azurerm_resource_group.rg.location
+  parent_id = azurerm_resource_group.rg.id
+  tags = local.tags
+  body = jsonencode({
+    properties = {
+      appLogsConfiguration = {
+        destination = "log-analytics"
+        logAnalyticsConfiguration = {
+          customerId = azurerm_log_analytics_workspace.default.workspace_id
+        }
+      }
+      vnetConfiguration = {
+        dockerBridgeCidr = "10.1.0.1/16"
+        infrastructureSubnetId = azurerm_subnet.apps.id
+        internal = true
+        platformReservedCidr = "10.0.0.0/16"
+        platformReservedDnsIP = "10.0.0.2"
+      }
+      workloadProfiles = [
+        {
+          name = "Dedicated-D4"
+          workloadProfileType = "Dedicated-D4"
+        }
+      ]
+      zoneRedundant = false
+    }
+  })
 }
 
 resource "azurerm_container_app" "example" {

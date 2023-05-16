@@ -85,7 +85,7 @@ resource "azapi_resource" "env" {
 
 resource "azurerm_container_app" "example" {
   name                         = "${local.name}"
-  container_app_environment_id = jsondecode(azapi_resource.azurespringapps.output).id
+  container_app_environment_id = jsondecode(azapi_resource.env.output).id
   resource_group_name          = azurerm_resource_group.rg.name
   revision_mode                = "Single"
 

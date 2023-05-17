@@ -72,7 +72,7 @@ resource "azapi_resource" "env" {
       workloadProfiles = [
         {
           name = "Dedicated-D4"
-          workloadProfileType = "Dedicated-D4"
+          workloadProfileType = "D4"
         }
       ]
       zoneRedundant = false

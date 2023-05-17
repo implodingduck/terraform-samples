@@ -66,11 +66,8 @@ resource "azapi_resource" "env" {
         }
       }
       vnetConfiguration = {
-        dockerBridgeCidr = "172.16.0.0/16"
         infrastructureSubnetId = jsondecode(azapi_resource.snet-apps.output).id #azurerm_subnet.apps.id
         internal = true
-        platformReservedCidr = "192.168.0.0/16"
-        platformReservedDnsIP = "192.168.0.0"
       }
       workloadProfiles = [
         {

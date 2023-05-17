@@ -62,6 +62,7 @@ resource "azapi_resource" "env" {
         destination = "log-analytics"
         logAnalyticsConfiguration = {
           customerId = data.azurerm_log_analytics_workspace.default.workspace_id
+          sharedKey = data.azurerm_log_analytics_workspace.default.primary_shared_key
         }
       }
       vnetConfiguration = {

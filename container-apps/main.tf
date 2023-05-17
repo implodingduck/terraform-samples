@@ -83,19 +83,51 @@ resource "azapi_resource" "env" {
   response_export_values = ["*"]
 }
 
-resource "azurerm_container_app" "example" {
-  name                         = "${local.name}"
-  container_app_environment_id = jsondecode(azapi_resource.env.output).id
-  resource_group_name          = azurerm_resource_group.rg.name
-  revision_mode                = "Single"
+# resource "azurerm_container_app" "example" {
+#   name                         = "${local.name}"
+#   container_app_environment_id = jsondecode(azapi_resource.env.output).id
+#   resource_group_name          = azurerm_resource_group.rg.name
+#   revision_mode                = "Single"
 
-  template {
-    container {
-      name   = "examplecontainerapp"
-      image  = "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest"
-      cpu    = 0.25
-      memory = "0.5Gi"
+#   template {
+#     container {
+#       name   = "examplecontainerapp"
+#       image  = "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest"
+#       cpu    = 0.25
+#       memory = "0.5Gi"
+#     }
+#   }
+#   tags                         = local.tags
+# }
+
+resource "azapi_resource" "containerapp" {
+  type = "Microsoft.App/containerApps@2022-11-01-preview"
+  name = "${local.name}"
+  location = azurerm_resource_group.rg.location
+  parent_id = azurerm_resource_group.rg.id
+  body = jsonencode({
+    properties = {
+      configuration = {
+        activeRevisionsMode = "Single"
+      }
+      environmentId = jsondecode(azapi_resource.env.output).id
+      template = {
+        containers = [
+          {
+            name   = "examplecontainerapp"
+            image  = "mcr.microsoft.com/azuredocs/containerapps-helloworld:latest"
+            resources = {
+              cpu    = "0.25"
+              memory = "0.5Gi"
+            }
+          }
+        ]
+      }
     }
+  })
+
+  identity {
+    type = "SystemAssigned"
   }
-  tags                         = local.tags
+  tags = local.tags
 }

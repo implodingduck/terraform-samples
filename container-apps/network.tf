@@ -38,18 +38,40 @@ resource "azurerm_subnet" "service-runtime" {
 
 }
 
-resource "azurerm_subnet" "apps" {
-  name                 = "snet-apps"
-  resource_group_name  = azurerm_virtual_network.default.resource_group_name
-  virtual_network_name = azurerm_virtual_network.default.name
-  address_prefixes     = ["10.1.3.0/24"]
-  # delegation {
-  #   name = "containerapps"
-  #   service_delegation   {
-  #     name = "Microsoft.App/environments"
-  #     actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
-  #   }
-  # }
+# resource "azurerm_subnet" "apps" {
+#   name                 = "snet-apps"
+#   resource_group_name  = azurerm_virtual_network.default.resource_group_name
+#   virtual_network_name = azurerm_virtual_network.default.name
+#   address_prefixes     = ["10.1.3.0/24"]
+#   # delegation {
+#   #   name = "containerapps"
+#   #   service_delegation   {
+#   #     name = "Microsoft.App/environments"
+#   #     actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+#   #   }
+#   # }
+# }
+
+resource "azapi_resource" "snet-apps" {
+  type = "Microsoft.Network/virtualNetworks/subnets@2022-07-01"
+  name = "snet-apps"
+  parent_id = azurerm_virtual_network.default.id
+  body = jsonencode({
+    properties = {
+      addressPrefixes  = ["10.1.3.0/24"]
+      delegations = [
+        {
+          name = "containerapps"
+          properties = {
+            serviceName = "Microsoft.App/environments"
+          }
+          type = "Microsoft.Network/virtualNetworks/subnets/delegations"
+        }
+      ]
+    }
+
+  })
+  response_export_values = ["*"]
 }
 
 resource "azurerm_route_table" "apps" {

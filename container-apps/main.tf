@@ -66,7 +66,7 @@ resource "azapi_resource" "env" {
       }
       vnetConfiguration = {
         dockerBridgeCidr = "10.1.0.1/16"
-        infrastructureSubnetId = azurerm_subnet.apps.id
+        infrastructureSubnetId = jsondecode(azapi_resource.snet-apps.output).id #azurerm_subnet.apps.id
         internal = true
         platformReservedCidr = "10.0.0.0/16"
         platformReservedDnsIP = "10.0.0.2"

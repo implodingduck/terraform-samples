@@ -68,6 +68,12 @@ resource "azapi_resource" "snet-apps" {
           type = "Microsoft.Network/virtualNetworks/subnets/delegations"
         }
       ]
+      networkSecurityGroup = {
+        id = azurerm_network_security_group.basic.id
+      }
+      routeTable = {
+        id = azurerm_route_table.apps.id
+      }
     }
 
   })
@@ -95,15 +101,15 @@ resource "azurerm_route_table" "apps" {
   }
 }
 
-resource "azurerm_subnet_route_table_association" "apps" {
-  subnet_id      = jsondecode(azapi_resource.snet-apps.output).id #azurerm_subnet.apps.id
-  route_table_id = azurerm_route_table.apps.id
-}
+# resource "azurerm_subnet_route_table_association" "apps" {
+#   subnet_id      = azurerm_subnet.apps.id
+#   route_table_id = azurerm_route_table.apps.id
+# }
 
-resource "azurerm_subnet_network_security_group_association" "apps" {
-  subnet_id                 = jsondecode(azapi_resource.snet-apps.output).id #azurerm_subnet.apps.id
-  network_security_group_id = azurerm_network_security_group.basic.id
-}
+# resource "azurerm_subnet_network_security_group_association" "apps" {
+#   subnet_id                 = azurerm_subnet.apps.id
+#   network_security_group_id = azurerm_network_security_group.basic.id
+# }
 
 resource "azurerm_subnet" "aci" {
   name                 = "snet-aci"

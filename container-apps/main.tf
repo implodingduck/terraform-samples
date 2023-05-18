@@ -111,7 +111,7 @@ resource "azapi_resource" "containerapp" {
         activeRevisionsMode = "Single"
         ingress = {
           allowInsecure = false
-          external  = false
+          external  = true
           transport = "auto"
           targetPort = 80 
         }

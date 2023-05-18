@@ -109,6 +109,12 @@ resource "azapi_resource" "containerapp" {
     properties = {
       configuration = {
         activeRevisionsMode = "Single"
+        ingress = {
+          allowInsecure = false
+          external  = false
+          transport = "auto"
+          exposedPort = 80 
+        }
       }
       environmentId = jsondecode(azapi_resource.env.output).id
       template = {

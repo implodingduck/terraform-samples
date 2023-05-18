@@ -113,9 +113,145 @@ resource "azurerm_firewall_policy_rule_collection_group" "this" {
         "UDP"
       ]
     }
+  }
+}
 
 
+resource "azurerm_monitor_diagnostic_setting" "fw" {
+  name                           = "allTheLogs"
+  target_resource_id             = azurerm_firewall.this.id
+  log_analytics_destination_type = "AzureDiagnostics"
+  log_analytics_workspace_id     = data.azurerm_log_analytics_workspace.default.id
+
+  log {
+    category = "AzureFirewallApplicationRule"
+    enabled  = true
+
+    retention_policy {
+      days    = 0
+      enabled = false
+    }
   }
 
+  log {
+    category = "AzureFirewallNetworkRule"
+    enabled  = true
+
+    retention_policy {
+      days    = 0
+      enabled = false
+    }
+  }
+
+  log {
+    category = "AzureFirewallDnsProxy"
+    enabled  = true
+
+    retention_policy {
+      days    = 0
+      enabled = false
+    }
+  }
+
+  log {
+    category = "AZFWApplicationRule"
+    enabled  = true
+
+    retention_policy {
+      days    = 0
+      enabled = false
+    }
+  }
+  log {
+    category = "AZFWApplicationRuleAggregation"
+    enabled  = true
+
+    retention_policy {
+      days    = 0
+      enabled = false
+    }
+  }
+  log {
+    category = "AZFWDnsQuery"
+    enabled  = true
+
+    retention_policy {
+      days    = 0
+      enabled = false
+    }
+  }
+  log {
+    category = "AZFWFqdnResolveFailure"
+    enabled  = true
+
+    retention_policy {
+      days    = 0
+      enabled = false
+    }
+  }
+  log {
+    category = "AZFWIdpsSignature"
+    enabled  = true
+
+    retention_policy {
+      days    = 0
+      enabled = false
+    }
+  }
+  log {
+    category = "AZFWNatRule"
+    enabled  = true
+
+    retention_policy {
+      days    = 0
+      enabled = false
+    }
+  }
+  log {
+    category = "AZFWNatRuleAggregation"
+    enabled  = true
+
+    retention_policy {
+      days    = 0
+      enabled = false
+    }
+  }
+  log {
+    category = "AZFWNetworkRule"
+    enabled  = true
+
+    retention_policy {
+      days    = 0
+      enabled = false
+    }
+  }
+  log {
+    category = "AZFWNetworkRuleAggregation"
+    enabled  = true
+
+    retention_policy {
+      days    = 0
+      enabled = false
+    }
+  }
+  log {
+    category = "AZFWThreatIntel"
+    enabled  = true
+
+    retention_policy {
+      days    = 0
+      enabled = false
+    }
+  }
+
+  metric {
+    category = "AllMetrics"
+    enabled  = false
+
+    retention_policy {
+      days    = 0
+      enabled = false
+    }
+  }
 
 }

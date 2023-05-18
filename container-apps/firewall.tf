@@ -126,7 +126,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "this" {
         port = 443
       }
       source_addresses  = ["*"]
-      destination_fqdns = ["mcr.microsoft.com", "*.azureedge.net"]
+      destination_fqdns = ["mcr.microsoft.com", "*.azureedge.net", "*.ubuntu.com"]
     }
     rule {
       name = "app_rule_collection1_rule2"
@@ -135,7 +135,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "this" {
         port = 80
       }
       source_addresses  = ["*"]
-      destination_fqdns = ["crl.microsoft.com"]
+      destination_fqdns = ["crl.microsoft.com", "azure.archive.ubuntu.com"]
     }
   }
 }

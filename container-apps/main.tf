@@ -128,6 +128,10 @@ resource "azapi_resource" "containerapp" {
             }
           }
         ]
+        scale = {
+          minReplicas = 1
+          maxReplicas = 1
+        }
       }
     }
   })

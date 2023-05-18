@@ -126,7 +126,16 @@ resource "azurerm_firewall_policy_rule_collection_group" "this" {
         port = 443
       }
       source_addresses  = ["*"]
-      destination_fqdns = ["mcr.microsoft.com"]
+      destination_fqdns = ["mcr.microsoft.com", "*.azureedge.net"]
+    }
+    rule {
+      name = "app_rule_collection1_rule2"
+      protocols {
+        type = "Http"
+        port = 80
+      }
+      source_addresses  = ["*"]
+      destination_fqdns = ["crl.microsoft.com"]
     }
   }
 }

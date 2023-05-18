@@ -157,7 +157,7 @@ resource "azapi_resource" "containerapputil" {
         containers = [
           {
             name   = "util"
-            image  = "bjd145/utils:latest"
+            image  = "hub.docker.com/bjd145/utils:latest"
             resources = {
               cpu    = 0.25
               memory = "0.5Gi"

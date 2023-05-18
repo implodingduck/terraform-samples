@@ -141,3 +141,39 @@ resource "azapi_resource" "containerapp" {
   }
   tags = local.tags
 }
+
+resource "azapi_resource" "containerapputil" {
+  type = "Microsoft.App/containerApps@2022-11-01-preview"
+  name = "${local.name}-util"
+  location = azurerm_resource_group.rg.location
+  parent_id = azurerm_resource_group.rg.id
+  body = jsonencode({
+    properties = {
+      configuration = {
+        activeRevisionsMode = "Single"
+      }
+      environmentId = jsondecode(azapi_resource.env.output).id
+      template = {
+        containers = [
+          {
+            name   = "util"
+            image  = "bjd145/utils:latest"
+            resources = {
+              cpu    = 0.25
+              memory = "0.5Gi"
+            }
+          }
+        ]
+        scale = {
+          minReplicas = 1
+          maxReplicas = 1
+        }
+      }
+    }
+  })
+
+  identity {
+    type = "SystemAssigned"
+  }
+  tags = local.tags
+}

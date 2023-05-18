@@ -126,7 +126,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "this" {
         port = 443
       }
       source_addresses  = ["*"]
-      destination_fqdns = ["mcr.microsoft.com", "*.azureedge.net", "*.ubuntu.com", "*.docker.io"]
+      destination_fqdns = ["mcr.microsoft.com", "*.azureedge.net", "*.ubuntu.com", "*.docker.io", "*.docker.com"]
     }
     rule {
       name = "app_rule_collection1_rule2"

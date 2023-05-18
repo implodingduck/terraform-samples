@@ -113,7 +113,7 @@ resource "azapi_resource" "containerapp" {
           allowInsecure = false
           external  = false
           transport = "auto"
-          exposedPort = 80 
+          targetPort = 80 
         }
       }
       environmentId = jsondecode(azapi_resource.env.output).id

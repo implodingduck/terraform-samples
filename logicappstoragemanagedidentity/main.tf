@@ -173,32 +173,32 @@ resource "azurerm_storage_account" "sa" {
   tags = local.tags
 }
 
-resource "azurerm_storage_container" "hosts" {
-  depends_on = [
-    azapi_resource_action.resource_access_rule
-  ]
-  name                  = "azure-webjobs-hosts"
-  storage_account_name  = azurerm_storage_account.sa.name
-  container_access_type = "private"
-}
+# resource "azurerm_storage_container" "hosts" {
+#   depends_on = [
+#     azapi_resource_action.resource_access_rule
+#   ]
+#   name                  = "azure-webjobs-hosts"
+#   storage_account_name  = azurerm_storage_account.sa.name
+#   container_access_type = "private"
+# }
 
-resource "azurerm_storage_container" "secrets" {
-  depends_on = [
-    azapi_resource_action.resource_access_rule
-  ]
-  name                  = "azure-webjobs-secrets"
-  storage_account_name  = azurerm_storage_account.sa.name
-  container_access_type = "private"
-}
+# resource "azurerm_storage_container" "secrets" {
+#   depends_on = [
+#     azapi_resource_action.resource_access_rule
+#   ]
+#   name                  = "azure-webjobs-secrets"
+#   storage_account_name  = azurerm_storage_account.sa.name
+#   container_access_type = "private"
+# }
 
-resource "azurerm_storage_share" "share" {
-  depends_on = [
-    azapi_resource_action.resource_access_rule
-  ]
-  name                 = "la-${local.func_name}-content"
-  storage_account_name = azurerm_storage_account.sa.name
-  quota                = 1
-}
+# resource "azurerm_storage_share" "share" {
+#   depends_on = [
+#     azapi_resource_action.resource_access_rule
+#   ]
+#   name                 = "la-${local.func_name}-content"
+#   storage_account_name = azurerm_storage_account.sa.name
+#   quota                = 1
+# }
 
 
 resource "azapi_resource_action" "resource_access_rule" {
@@ -257,7 +257,8 @@ resource "azurerm_logic_app_standard" "example" {
   app_settings = {
     "FUNCTIONS_WORKER_RUNTIME"        = "node"
     "WEBSITE_NODE_DEFAULT_VERSION"    = "~14"
-    "WEBSITE_CONTENTOVERVNET"         = "1"
+    "FUNCTIONS_EXTENSION_VERSION"     = "~4"
+    "AzureFunctionsJobHost__extensionBundle__version" = "[3.*, 4.0.0)"
     "AzureWebJobStorage__accountName" = azurerm_storage_account.sa.name
   }
 

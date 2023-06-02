@@ -145,3 +145,12 @@ output "issuer_url" {
 output "enabled" {
   value = azurerm_kubernetes_cluster.aks.oidc_issuer_enabled
 }
+
+data "azurerm_private_endpoint_connection" "example" {
+  name                = "kube-apiserver"
+  resource_group_name = azurerm_kubernetes_cluster.aks.node_resource_group
+}
+
+output "nic" {
+  value = data.azurerm_private_endpoint_connection.example.network_interface[0].id
+}

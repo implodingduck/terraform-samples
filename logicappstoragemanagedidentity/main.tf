@@ -256,9 +256,9 @@ resource "azurerm_logic_app_standard" "example" {
   virtual_network_subnet_id  = azurerm_subnet.logicapps.id
   app_settings = {
     "FUNCTIONS_WORKER_RUNTIME"        = "node"
-    "WEBSITE_NODE_DEFAULT_VERSION"    = "~14"
+    "WEBSITE_NODE_DEFAULT_VERSION"    = "~16"
     "FUNCTIONS_EXTENSION_VERSION"     = "~4"
-    "AzureFunctionsJobHost__extensionBundle__version" = "[3.*, 4.0.0)"
+    #"AzureFunctionsJobHost__extensionBundle__version" = "[3.*, 4.0.0)"
     "AzureWebJobStorage__accountName" = azurerm_storage_account.sa.name
   }
 

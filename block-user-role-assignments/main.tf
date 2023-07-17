@@ -93,12 +93,19 @@ resource "azurerm_role_assignment" "spn" {
   skip_service_principal_aad_check = true
 }
 
-resource "azurerm_role_assignment" "user" {
+resource "azurerm_role_assignment" "userfake" {
   depends_on = [ azurerm_resource_group_policy_assignment.example ]
   scope                = azurerm_resource_group.example.id
   role_definition_name = "Reader"
   principal_id         = var.user_principal_id
   skip_service_principal_aad_check = true
+}
+
+resource "azurerm_role_assignment" "user" {
+  depends_on = [ azurerm_resource_group_policy_assignment.example ]
+  scope                = azurerm_resource_group.example.id
+  role_definition_name = "Reader"
+  principal_id         = var.user_principal_id
 }
 
 data "azurerm_role_definition" "reader" {

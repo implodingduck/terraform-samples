@@ -39,14 +39,14 @@ resource "azurerm_policy_definition" "example" {
         "equals": "Microsoft.Authorization/roleAssignments"
       },
       {
-        "anyOf": [
+        "allOf": [
           {
             "field": "Microsoft.Authorization/roleAssignments/principalType",
-            "equals": "User"
+            "notEquals": "Group"
           },
           {
             "field": "Microsoft.Authorization/roleAssignments/principalType",
-            "exists": false
+            "notEquals": "ServicePrincipal"
           }
         ]
       }

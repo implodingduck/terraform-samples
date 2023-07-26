@@ -10,7 +10,7 @@ terraform {
     }
     azapi = {
       source  = "Azure/azapi"
-      version = "1.3.0"
+      version = "1.7.0"
     }
   }
 }
@@ -25,8 +25,8 @@ provider "azurerm" {
 
 locals {
   func_name = "lasami${random_string.unique.result}"
-  location = "eastus"
-  gh_repo = "terraform-samples"
+  location  = "eastus"
+  gh_repo   = "terraform-samples"
   tags = {
     "managed_by" = "terraform"
     "repo"       = local.gh_repo
@@ -38,7 +38,7 @@ data "azurerm_client_config" "current" {}
 data "azurerm_log_analytics_workspace" "default" {
   name                = "DefaultWorkspace-${data.azurerm_client_config.current.subscription_id}-EUS"
   resource_group_name = "DefaultResourceGroup-EUS"
-} 
+}
 
 data "http" "ip" {
   url = "https://ifconfig.me/ip"
@@ -53,7 +53,7 @@ resource "random_string" "unique" {
 resource "azurerm_resource_group" "rg" {
   name     = "rg-${local.func_name}-${local.location}"
   location = local.location
-  tags = local.tags
+  tags     = local.tags
 }
 
 resource "azurerm_virtual_network" "default" {
@@ -202,38 +202,38 @@ resource "azurerm_storage_account" "sa" {
 
 
 resource "azapi_resource_action" "resource_access_rule" {
-    type = "Microsoft.Storage/storageAccounts@2022-05-01"
-    resource_id            = azurerm_storage_account.sa.id
-    method                 = "PUT"
-    
-    body                   = jsonencode({
-        location               = local.location
-        properties = {
-            networkAcls = {
-                resourceAccessRules = [
-                    {
-                        resourceId = "${azurerm_resource_group.rg.id}/providers/Microsoft.Logic/workflows/*"
-                        tenantId = data.azurerm_client_config.current.tenant_id
-                    }
-                ]
-                bypass = "AzureServices"
-                virtualNetworkRules = [
-                    {
-                        id = azurerm_subnet.logicapps.id
-                        action = "Allow"
-                    }
-                    
-                ]
-                ipRules = [
-                    {
-                        action = "Allow"
-                        value = data.http.ip.response_body
-                    }
-                ]
-                defaultAction = "Deny"
-            }
-        }
-    })
+  type        = "Microsoft.Storage/storageAccounts@2022-05-01"
+  resource_id = azurerm_storage_account.sa.id
+  method      = "PUT"
+
+  body = jsonencode({
+    location = local.location
+    properties = {
+      networkAcls = {
+        resourceAccessRules = [
+          {
+            resourceId = "${azurerm_resource_group.rg.id}/providers/Microsoft.Logic/workflows/*"
+            tenantId   = data.azurerm_client_config.current.tenant_id
+          }
+        ]
+        bypass = "AzureServices"
+        virtualNetworkRules = [
+          {
+            id     = azurerm_subnet.logicapps.id
+            action = "Allow"
+          }
+
+        ]
+        ipRules = [
+          {
+            action = "Allow"
+            value  = data.http.ip.response_body
+          }
+        ]
+        defaultAction = "Deny"
+      }
+    }
+  })
 }
 
 resource "azurerm_service_plan" "asp" {
@@ -242,7 +242,7 @@ resource "azurerm_service_plan" "asp" {
   location            = azurerm_resource_group.rg.location
   os_type             = "Windows"
   sku_name            = "WS1"
-  tags = local.tags
+  tags                = local.tags
 }
 
 
@@ -255,11 +255,12 @@ resource "azurerm_logic_app_standard" "example" {
   storage_account_access_key = azurerm_storage_account.sa.primary_access_key
   virtual_network_subnet_id  = azurerm_subnet.logicapps.id
   app_settings = {
-    "FUNCTIONS_WORKER_RUNTIME"        = "node"
-    "WEBSITE_NODE_DEFAULT_VERSION"    = "~16"
-    "FUNCTIONS_EXTENSION_VERSION"     = "~4"
+    "FUNCTIONS_WORKER_RUNTIME"     = "node"
+    "WEBSITE_NODE_DEFAULT_VERSION" = "~16"
+    "FUNCTIONS_EXTENSION_VERSION"  = "~4"
     #"AzureFunctionsJobHost__extensionBundle__version" = "[3.*, 4.0.0)"
     "AzureWebJobStorage__accountName" = azurerm_storage_account.sa.name
+    APPLICATIONINSIGHTS_CONNECTION_STRING = azurerm_application_insights.this.connection_string
   }
 
   site_config {
@@ -278,5 +279,21 @@ resource "azurerm_logic_app_standard" "example" {
 resource "azurerm_role_assignment" "system" {
   scope                = azurerm_storage_account.sa.id
   role_definition_name = "Storage Blob Data Owner"
-  principal_id         = azurerm_logic_app_standard.example.identity.0.principal_id  
+  principal_id         = azurerm_logic_app_standard.example.identity.0.principal_id
+}
+
+resource "azurerm_role_assignment" "appinsights" {
+  scope                = azurerm_application_insights.this.id
+  role_definition_name = "Monitoring Metrics Publisher"
+  principal_id         = azurerm_logic_app_standard.example.identity.0.principal_id
+}
+
+
+resource "azurerm_application_insights" "this" {
+  name                          = "${local.func_name}-insights"
+  location                      = azurerm_resource_group.rg.location
+  resource_group_name           = azurerm_resource_group.rg.name
+  workspace_id                  = azurerm_log_analytics_workspace.default.id
+  application_type              = "other"
+  local_authentication_disabled = true
 }

@@ -111,56 +111,56 @@ resource "azurerm_private_dns_zone" "file" {
 
 
 
-resource "azurerm_private_endpoint" "pe" {
-  name                = "pe-sa${local.func_name}"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
-  subnet_id           = azurerm_subnet.pe.id
+# resource "azurerm_private_endpoint" "pe" {
+#   name                = "pe-sa${local.func_name}"
+#   location            = azurerm_resource_group.rg.location
+#   resource_group_name = azurerm_resource_group.rg.name
+#   subnet_id           = azurerm_subnet.pe.id
 
-  private_service_connection {
-    name                           = "pe-connection-sa${local.func_name}"
-    private_connection_resource_id = azurerm_storage_account.sa.id
-    is_manual_connection           = false
-    subresource_names              = ["blob"]
-  }
-  private_dns_zone_group {
-    name                 = azurerm_private_dns_zone.blob.name
-    private_dns_zone_ids = [azurerm_private_dns_zone.blob.id]
-  }
-}
+#   private_service_connection {
+#     name                           = "pe-connection-sa${local.func_name}"
+#     private_connection_resource_id = azurerm_storage_account.sa.id
+#     is_manual_connection           = false
+#     subresource_names              = ["blob"]
+#   }
+#   private_dns_zone_group {
+#     name                 = azurerm_private_dns_zone.blob.name
+#     private_dns_zone_ids = [azurerm_private_dns_zone.blob.id]
+#   }
+# }
 
-resource "azurerm_private_endpoint" "pe-file" {
-  name                = "pe-sa${local.func_name}-file"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
-  subnet_id           = azurerm_subnet.pe.id
+# resource "azurerm_private_endpoint" "pe-file" {
+#   name                = "pe-sa${local.func_name}-file"
+#   location            = azurerm_resource_group.rg.location
+#   resource_group_name = azurerm_resource_group.rg.name
+#   subnet_id           = azurerm_subnet.pe.id
 
-  private_service_connection {
-    name                           = "pe-connection-sa${local.func_name}-file"
-    private_connection_resource_id = azurerm_storage_account.sa.id
-    is_manual_connection           = false
-    subresource_names              = ["file"]
-  }
-  private_dns_zone_group {
-    name                 = azurerm_private_dns_zone.file.name
-    private_dns_zone_ids = [azurerm_private_dns_zone.file.id]
-  }
-}
+#   private_service_connection {
+#     name                           = "pe-connection-sa${local.func_name}-file"
+#     private_connection_resource_id = azurerm_storage_account.sa.id
+#     is_manual_connection           = false
+#     subresource_names              = ["file"]
+#   }
+#   private_dns_zone_group {
+#     name                 = azurerm_private_dns_zone.file.name
+#     private_dns_zone_ids = [azurerm_private_dns_zone.file.id]
+#   }
+# }
 
 
-resource "azurerm_private_dns_zone_virtual_network_link" "blob" {
-  name                  = "pdns-blob"
-  resource_group_name   = azurerm_resource_group.rg.name
-  private_dns_zone_name = azurerm_private_dns_zone.blob.name
-  virtual_network_id    = azurerm_virtual_network.default.id
-}
+# resource "azurerm_private_dns_zone_virtual_network_link" "blob" {
+#   name                  = "pdns-blob"
+#   resource_group_name   = azurerm_resource_group.rg.name
+#   private_dns_zone_name = azurerm_private_dns_zone.blob.name
+#   virtual_network_id    = azurerm_virtual_network.default.id
+# }
 
-resource "azurerm_private_dns_zone_virtual_network_link" "file" {
-  name                  = "pdns-file"
-  resource_group_name   = azurerm_resource_group.rg.name
-  private_dns_zone_name = azurerm_private_dns_zone.file.name
-  virtual_network_id    = azurerm_virtual_network.default.id
-}
+# resource "azurerm_private_dns_zone_virtual_network_link" "file" {
+#   name                  = "pdns-file"
+#   resource_group_name   = azurerm_resource_group.rg.name
+#   private_dns_zone_name = azurerm_private_dns_zone.file.name
+#   virtual_network_id    = azurerm_virtual_network.default.id
+# }
 
 resource "azurerm_storage_account" "sa" {
   name                     = "sa${local.func_name}"
@@ -201,40 +201,40 @@ resource "azurerm_storage_account" "sa" {
 # }
 
 
-resource "azapi_resource_action" "resource_access_rule" {
-  type        = "Microsoft.Storage/storageAccounts@2022-05-01"
-  resource_id = azurerm_storage_account.sa.id
-  method      = "PUT"
+# resource "azapi_resource_action" "resource_access_rule" {
+#   type        = "Microsoft.Storage/storageAccounts@2022-05-01"
+#   resource_id = azurerm_storage_account.sa.id
+#   method      = "PUT"
 
-  body = jsonencode({
-    location = local.location
-    properties = {
-      networkAcls = {
-        resourceAccessRules = [
-          {
-            resourceId = "${azurerm_resource_group.rg.id}/providers/Microsoft.Logic/workflows/*"
-            tenantId   = data.azurerm_client_config.current.tenant_id
-          }
-        ]
-        bypass = "AzureServices"
-        virtualNetworkRules = [
-          {
-            id     = azurerm_subnet.logicapps.id
-            action = "Allow"
-          }
+#   body = jsonencode({
+#     location = local.location
+#     properties = {
+#       networkAcls = {
+#         resourceAccessRules = [
+#           {
+#             resourceId = "${azurerm_resource_group.rg.id}/providers/Microsoft.Logic/workflows/*"
+#             tenantId   = data.azurerm_client_config.current.tenant_id
+#           }
+#         ]
+#         bypass = "AzureServices"
+#         virtualNetworkRules = [
+#           {
+#             id     = azurerm_subnet.logicapps.id
+#             action = "Allow"
+#           }
 
-        ]
-        ipRules = [
-          {
-            action = "Allow"
-            value  = data.http.ip.response_body
-          }
-        ]
-        defaultAction = "Deny"
-      }
-    }
-  })
-}
+#         ]
+#         ipRules = [
+#           {
+#             action = "Allow"
+#             value  = data.http.ip.response_body
+#           }
+#         ]
+#         defaultAction = "Deny"
+#       }
+#     }
+#   })
+# }
 
 resource "azurerm_service_plan" "asp" {
   name                = "asp-${local.func_name}"
@@ -254,11 +254,12 @@ resource "azurerm_logic_app_standard" "example" {
   storage_account_name       = azurerm_storage_account.sa.name
   storage_account_access_key = azurerm_storage_account.sa.primary_access_key
   virtual_network_subnet_id  = azurerm_subnet.logicapps.id
+  version = "~4"
   app_settings = {
     "FUNCTIONS_WORKER_RUNTIME"     = "node"
     "WEBSITE_NODE_DEFAULT_VERSION" = "~16"
-    "FUNCTIONS_EXTENSION_VERSION"  = "~4"
-    #"AzureFunctionsJobHost__extensionBundle__version" = "[3.*, 4.0.0)"
+    # "FUNCTIONS_EXTENSION_VERSION"  = "~4"
+    # "AzureFunctionsJobHost__extensionBundle__version" = "[3.*, 4.0.0)"
     "AzureWebJobStorage__accountName" = azurerm_storage_account.sa.name
     APPLICATIONINSIGHTS_CONNECTION_STRING = azurerm_application_insights.this.connection_string
   }
@@ -293,7 +294,7 @@ resource "azurerm_application_insights" "this" {
   name                          = "${local.func_name}-insights"
   location                      = azurerm_resource_group.rg.location
   resource_group_name           = azurerm_resource_group.rg.name
-  workspace_id                  = azurerm_log_analytics_workspace.default.id
+  workspace_id                  = data.azurerm_log_analytics_workspace.default.id
   application_type              = "other"
   local_authentication_disabled = true
 }

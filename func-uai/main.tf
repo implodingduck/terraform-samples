@@ -126,7 +126,7 @@ resource "azurerm_linux_function_app" "func" {
   app_settings = {
     "AzureWebJobsStorage__credential" = "managedidentity"
     "AzureWebJobsStorage__clientId" = azurerm_user_assigned_identity.uai.client_id
-    "WEBSITE_RUN_FROM_PACKAGE" = "1"
+    "WEBSITE_RUN_FROM_PACKAGE" = ""
     "WEBSITE_RUN_FROM_PACKAGE_BLOB_MI_RESOURCE_ID" = azurerm_user_assigned_identity.uai.id
   }
   identity {

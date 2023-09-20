@@ -5,7 +5,8 @@ Table of nuances:
 |   | Terraform | Bicep |
 |---|-----------| ----- |
 | Plan | `terraform plan` | `az deployment sub create --what-if` |
-| Apply | `terraform apply` | `az deployment sub create` | 
+| Apply | `terraform apply` | `az deployment sub create` |
+| Destroy | `terraform destroy` |  `az deployment group create --resource-group $RG --mode Complete --template-file blank.bicep` |
 | Azure Resources | [AzureRM Provider](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs) or [AzApi Provider](https://learn.microsoft.com/en-us/azure/developer/terraform/overview-azapi-provider) | [Only ARM api spec](https://learn.microsoft.com/en-us/azure/templates/) |
 | Non Azure Resources | Potentially another provider to use or `null_resource` | [Deployment Script](https://learn.microsoft.com/en-us/azure/azure-resource-manager/bicep/deployment-script-bicep) |
 | State Management | Uses a separate state file as the source of truth | No state file, only compares to what is existing in Azure | 

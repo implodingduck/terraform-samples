@@ -87,7 +87,7 @@ resource "tls_private_key" "rsa-4096-example" {
 }
 
 resource "azurerm_kubernetes_cluster" "aks" {
-  name                    = local.cluster_name
+  name                    = local.name
   location                = azurerm_resource_group.rg.location
   resource_group_name     = azurerm_resource_group.rg.name
   dns_prefix              = local.cluster_name

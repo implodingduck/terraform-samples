@@ -123,7 +123,7 @@ resource "azurerm_storage_container" "this" {
 
 
 resource "azurerm_storage_account" "safails" {
-  name                     = "sa${local.func_name}"
+  name                     = "safail${local.func_name}"
   resource_group_name      = data.azurerm_resource_group.rg2.name
   location                 = data.azurerm_resource_group.rg2.location
   account_tier             = "Standard"

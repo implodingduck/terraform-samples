@@ -107,6 +107,32 @@ resource "azurerm_subnet" "other" {
  
 }
 
+resource "azurerm_route_table" "this" {
+  name                = "udr-apps"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+
+  route {
+    name                   = "fw"
+    address_prefix         = "0.0.0.0/0"
+    next_hop_type          = "VirtualAppliance"
+    next_hop_in_ip_address = azurerm_firewall.fw.ip_configuration.0.private_ip_address
+  }
+
+  tags = local.tags
+  lifecycle {
+    ignore_changes = [
+      tags,
+      route
+    ]
+  }
+}
+
+ resource "azurerm_subnet_route_table_association" "aci" {
+  subnet_id      = azurerm_subnet.aci.id
+  route_table_id = azurerm_route_table.this.id
+}
+
 resource "azurerm_private_dns_zone" "blob" {
   name                      = "privatelink.blob.core.windows.net"
   resource_group_name       = azurerm_resource_group.rg.name
@@ -171,6 +197,9 @@ resource "azurerm_container_group" "bastion" {
     ports {
       port     = 80
       protocol = "TCP"
+    }
+    environment_variables = {
+      TF_VAR_random_string = random_string.unique.result
     }
   }
 
@@ -237,72 +266,6 @@ resource "azurerm_firewall_policy_rule_collection_group" "this" {
   name               = "rulecollection${local.func_name}"
   firewall_policy_id = azurerm_firewall_policy.this.id
   priority           = 500
-  network_rule_collection {
-    name     = "network_rule_collection1"
-    priority = 300
-    action   = "Allow"
-    rule {
-      name = "allow443servicetags"
-      source_addresses = [
-        "*",
-      ]
-
-      destination_ports = [
-        "443",
-      ]
-
-      destination_addresses = [
-        "AzureCloud",
-        "AzureContainerRegistry",
-        "Storage",
-        "EventHub",
-        "AzureFrontDoor.FirstParty",
-      ]
-
-      protocols = [
-        "TCP"
-      ]
-    }
-    rule {
-      name = "allow445servicetags"
-
-      source_addresses = [
-        "*",
-      ]
-
-      destination_ports = [
-        "445",
-      ]
-
-      destination_addresses = [
-        "Storage",
-      ]
-
-      protocols = [
-        "TCP"
-      ]
-    }
-    rule {
-      name = "allowubuntuntp"
-
-      source_addresses = [
-        "*",
-      ]
-
-      destination_ports = [
-        "123",
-      ]
-
-      destination_addresses = [
-        "*",
-      ]
-
-      protocols = [
-        "UDP"
-      ]
-    }
-  }
-
   application_rule_collection {
     name     = "app_rule_collection1"
     priority = 500
@@ -314,7 +277,7 @@ resource "azurerm_firewall_policy_rule_collection_group" "this" {
         port = 443
       }
       source_addresses  = ["*"]
-      destination_fqdns = ["mcr.microsoft.com", "*.azureedge.net", "*.ubuntu.com", "*.docker.io", "*.docker.com"]
+      destination_fqdns = ["dc.services.visualstudio.com", "management.azure.com", "mcr.microsoft.com", "*.azureedge.net", "*.ubuntu.com", "*.docker.io", "*.docker.com", "*.terraform.io", "*.hashicorp.com", "ghcr.io", "github.com", "*.ghcr.io", "*.github.com"]
     }
     rule {
       name = "app_rule_collection1_rule2"
@@ -451,4 +414,14 @@ resource "azurerm_monitor_diagnostic_setting" "fw" {
     }
   }
 
+}
+
+resource "azurerm_storage_account" "sa" {
+  name                     = "satest${local.func_name}"
+  resource_group_name      = azurerm_resource_group.rg.name
+  location                 = azurerm_resource_group.rg.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  tags = local.tags
 }

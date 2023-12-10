@@ -30,7 +30,6 @@ locals {
 
 data "azurerm_resource_group" "rg" {
   name     = "rg-${local.func_name}-${local.loc_for_naming}"
-  location = local.loc_for_naming
 }
 
 data "azurerm_client_config" "current" {}
@@ -52,7 +51,6 @@ data "azurerm_private_dns_zone" "file" {
 
 data "azurerm_virtual_network" "default" {
   name                = "vnet-${local.func_name}-${local.loc_for_naming}"
-  location            = data.azurerm_resource_group.rg.location
   resource_group_name = data.azurerm_resource_group.rg.name
   
 }

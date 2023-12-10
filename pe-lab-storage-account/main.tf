@@ -32,6 +32,11 @@ data "azurerm_resource_group" "rg" {
   name     = "rg-${local.func_name}-${local.loc_for_naming}"
 }
 
+data "azurerm_resource_group" "rg2" {
+  name     = "rg-${local.func_name}-denied-${local.loc_for_naming}"
+}
+
+
 data "azurerm_client_config" "current" {}
 
 data "azurerm_log_analytics_workspace" "default" {
@@ -102,6 +107,25 @@ resource "azurerm_storage_account" "sa" {
   name                     = "sa${local.func_name}"
   resource_group_name      = data.azurerm_resource_group.rg.name
   location                 = data.azurerm_resource_group.rg.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+
+  public_network_access_enabled   = false
+
+  tags = local.tags
+}
+
+resource "azurerm_storage_container" "this" {
+  depends_on = [ azurerm_private_endpoint.peblob ]
+  name                  = "container${local.func_name}"
+  storage_account_name  = azurerm_storage_account.sa.name
+}
+
+
+resource "azurerm_storage_account" "safails" {
+  name                     = "sa${local.func_name}"
+  resource_group_name      = data.azurerm_resource_group.rg2.name
+  location                 = data.azurerm_resource_group.rg2.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
 

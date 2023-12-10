@@ -33,6 +33,12 @@ resource "azurerm_resource_group" "rg" {
   location = local.loc_for_naming
 }
 
+resource "azurerm_resource_group" "rg2" {
+  name     = "rg-${local.func_name}-denied-${local.loc_for_naming}"
+  location = local.loc_for_naming
+}
+
+
 resource "random_string" "unique" {
   length  = 8
   special = false
@@ -96,6 +102,8 @@ resource "azurerm_subnet" "aci" {
     }
   
   }
+  service_endpoints = ["Microsoft.Storage"]
+  service_endpoint_policy_ids = [azurerm_subnet_service_endpoint_storage_policy.this.id]
  
 }
 
@@ -106,6 +114,25 @@ resource "azurerm_subnet" "other" {
   address_prefixes      = ["10.4.4.0/24"]
  
 }
+
+resource "azurerm_subnet_service_endpoint_storage_policy" "this" {
+  name                = "sep-sa${local.func_name}"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = azurerm_resource_group.rg.location
+  definition {
+    name        = "sa${local.func_name}"
+    description = "Access to storage accounts in ${azurerm_resource_group.rg.id}"
+    service     = "Microsoft.Storage"
+    service_resources = [
+      azurerm_resource_group.rg.id
+    ]
+  }
+}
+
+
+
+
+
 
 resource "azurerm_route_table" "this" {
   name                = "udr-apps"
@@ -200,6 +227,8 @@ resource "azurerm_container_group" "bastion" {
     }
     environment_variables = {
       TF_VAR_random_string = random_string.unique.result
+      ARM_USE_MSI          = "true"
+      ARM_SUBSCRIPTION_ID  = data.azurerm_client_config.current.subscription_id
     }
   }
 
@@ -213,6 +242,18 @@ resource "azurerm_container_group" "bastion" {
 resource "azurerm_role_assignment" "owner" {
   scope                = azurerm_resource_group.rg.id
   role_definition_name = "Owner"
+  principal_id         = azurerm_container_group.bastion.identity.0.principal_id
+}
+
+resource "azurerm_role_assignment" "owner2" {
+  scope                = azurerm_resource_group.rg2.id
+  role_definition_name = "Owner"
+  principal_id         = azurerm_container_group.bastion.identity.0.principal_id
+}
+
+resource "azurerm_role_assignment" "reader" {
+  scope                = "/subscriptions/${data.azurerm_client_config.current.subscription_id}"
+  role_definition_name = "Reader"
   principal_id         = azurerm_container_group.bastion.identity.0.principal_id
 }
 

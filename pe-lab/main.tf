@@ -120,18 +120,13 @@ resource "azurerm_subnet_service_endpoint_storage_policy" "this" {
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
   definition {
-    name        = "sa${local.func_name}"
-    description = "Access to storage accounts in ${azurerm_resource_group.rg.id}"
+    name        = "sep-sa${local.func_name}_Microsoft.Storage"
     service     = "Microsoft.Storage"
     service_resources = [
-      azurerm_resource_group.rg.id
+      lower(azurerm_resource_group.rg.id)
     ]
   }
 }
-
-
-
-
 
 
 resource "azurerm_route_table" "this" {

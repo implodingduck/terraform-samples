@@ -133,3 +133,9 @@ resource "azurerm_storage_account" "safails" {
 
   tags = local.tags
 }
+
+resource "azurerm_storage_container" "fails" {
+  depends_on = [ azurerm_private_endpoint.peblob ]
+  name                  = "failscontainer${local.func_name}"
+  storage_account_name  = azurerm_storage_account.safails.name
+}

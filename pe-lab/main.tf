@@ -2,7 +2,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "=3.83.0"
+      version = "=3.84.0"
     }
     random = {
       source  = "hashicorp/random"
@@ -20,8 +20,10 @@ provider "azurerm" {
 }
 
 locals {
-  func_name = "pelab${random_string.unique.result}"
+  func_name      = "pelab${random_string.unique.result}"
   loc_for_naming = "eastus"
+  #loc_for_naming = "centralus"
+  loc_short = "${upper(substr(local.loc_for_naming, 0, 1))}US"
   tags = {
     "managed_by" = "terraform"
     "repo"       = "terraform-samples"
@@ -45,14 +47,18 @@ resource "random_string" "unique" {
   upper   = false
 }
 
+resource "random_password" "password" {
+  length           = 16
+  special          = true
+  override_special = "!#$%&?"
+}
 
 data "azurerm_client_config" "current" {}
 
 data "azurerm_log_analytics_workspace" "default" {
-  name                = "DefaultWorkspace-${data.azurerm_client_config.current.subscription_id}-EUS"
-  resource_group_name = "DefaultResourceGroup-EUS"
-} 
-
+  name                = "DefaultWorkspace-${data.azurerm_client_config.current.subscription_id}-${local.loc_short}"
+  resource_group_name = "defaultresourcegroup-${local.loc_short}"
+}
 
 resource "azurerm_virtual_network" "default" {
   name                = "vnet-${local.func_name}-${local.loc_for_naming}"
@@ -64,69 +70,71 @@ resource "azurerm_virtual_network" "default" {
 }
 
 resource "azurerm_subnet" "fw" {
-  name                  = "AzureFirewallSubnet"
-  resource_group_name   = azurerm_virtual_network.default.resource_group_name
-  virtual_network_name  = azurerm_virtual_network.default.name
-  address_prefixes      = ["10.4.1.0/26"]
+  name                 = "AzureFirewallSubnet"
+  resource_group_name  = azurerm_virtual_network.default.resource_group_name
+  virtual_network_name = azurerm_virtual_network.default.name
+  address_prefixes     = ["10.4.1.0/26"]
 
 }
 
 resource "azurerm_subnet" "fwmgmt" {
-  name                  = "AzureFirewallManagementSubnet"
-  resource_group_name   = azurerm_virtual_network.default.resource_group_name
-  virtual_network_name  = azurerm_virtual_network.default.name
-  address_prefixes      = ["10.4.1.64/26"]
+  name                 = "AzureFirewallManagementSubnet"
+  resource_group_name  = azurerm_virtual_network.default.resource_group_name
+  virtual_network_name = azurerm_virtual_network.default.name
+  address_prefixes     = ["10.4.1.64/26"]
 
 }
 
 resource "azurerm_subnet" "pe" {
-  name                  = "snet-privateendpoints-${local.loc_for_naming}"
-  resource_group_name   = azurerm_virtual_network.default.resource_group_name
-  virtual_network_name  = azurerm_virtual_network.default.name
-  address_prefixes      = ["10.4.2.0/24"]
+  name                 = "snet-privateendpoints-${local.loc_for_naming}"
+  resource_group_name  = azurerm_virtual_network.default.resource_group_name
+  virtual_network_name = azurerm_virtual_network.default.name
+  address_prefixes     = ["10.4.2.0/24"]
 
   private_endpoint_network_policies_enabled = true
 
 }
 
+resource "azurerm_subnet" "aca" {
+  name                 = "snet-aca-${local.loc_for_naming}"
+  resource_group_name  = azurerm_virtual_network.default.resource_group_name
+  virtual_network_name = azurerm_virtual_network.default.name
+  address_prefixes     = ["10.4.3.0/24"]
+  delegation {
+    name = "delegation"
+    service_delegation {
+      name    = "Microsoft.App/environments"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
+    }
+
+  }
+
+}
+
+resource "azurerm_subnet" "other" {
+  name                 = "snet-other-${local.loc_for_naming}"
+  resource_group_name  = azurerm_virtual_network.default.resource_group_name
+  virtual_network_name = azurerm_virtual_network.default.name
+  address_prefixes     = ["10.4.4.0/24"]
+
+}
+
 resource "azurerm_subnet" "aci" {
-  name                  = "snet-aci-${local.loc_for_naming}"
-  resource_group_name   = azurerm_virtual_network.default.resource_group_name
-  virtual_network_name  = azurerm_virtual_network.default.name
-  address_prefixes      = ["10.4.3.0/24"]
+  name                 = "snet-aci-${local.loc_for_naming}"
+  resource_group_name  = azurerm_virtual_network.default.resource_group_name
+  virtual_network_name = azurerm_virtual_network.default.name
+  address_prefixes     = ["10.4.5.0/24"]
   delegation {
     name = "delegation"
     service_delegation {
       name    = "Microsoft.ContainerInstance/containerGroups"
-      actions = ["Microsoft.Network/virtualNetworks/subnets/action"]
+      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
     }
-  
+
   }
-  service_endpoints = ["Microsoft.Storage"]
-  service_endpoint_policy_ids = [azurerm_subnet_service_endpoint_storage_policy.this.id]
- 
+
 }
 
-resource "azurerm_subnet" "other" {
-  name                  = "snet-other-${local.loc_for_naming}"
-  resource_group_name   = azurerm_virtual_network.default.resource_group_name
-  virtual_network_name  = azurerm_virtual_network.default.name
-  address_prefixes      = ["10.4.4.0/24"]
- 
-}
-
-resource "azurerm_subnet_service_endpoint_storage_policy" "this" {
-  name                = "sep-sa${local.func_name}"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
-  definition {
-    name        = "sep-sa${local.func_name}_Microsoft.Storage"
-    service     = "Microsoft.Storage"
-    service_resources = [
-      lower(azurerm_resource_group.rg.id)
-    ]
-  }
-}
 
 
 resource "azurerm_route_table" "this" {
@@ -150,29 +158,39 @@ resource "azurerm_route_table" "this" {
   }
 }
 
- resource "azurerm_subnet_route_table_association" "aci" {
+resource "azurerm_subnet_route_table_association" "aci" {
   subnet_id      = azurerm_subnet.aci.id
   route_table_id = azurerm_route_table.this.id
 }
 
+resource "azurerm_subnet_route_table_association" "aca" {
+  subnet_id      = azurerm_subnet.aca.id
+  route_table_id = azurerm_route_table.this.id
+}
+
+resource "azurerm_subnet_route_table_association" "other" {
+  subnet_id      = azurerm_subnet.other.id
+  route_table_id = azurerm_route_table.this.id
+}
+
 resource "azurerm_private_dns_zone" "blob" {
-  name                      = "privatelink.blob.core.windows.net"
-  resource_group_name       = azurerm_resource_group.rg.name
+  name                = "privatelink.blob.core.windows.net"
+  resource_group_name = azurerm_resource_group.rg.name
 }
 
 resource "azurerm_private_dns_zone" "file" {
-  name                      = "privatelink.file.core.windows.net"
-  resource_group_name       = azurerm_resource_group.rg.name
+  name                = "privatelink.file.core.windows.net"
+  resource_group_name = azurerm_resource_group.rg.name
 }
 
 resource "azurerm_private_dns_zone" "queue" {
-  name                      = "privatelink.queue.core.windows.net"
-  resource_group_name       = azurerm_resource_group.rg.name
+  name                = "privatelink.queue.core.windows.net"
+  resource_group_name = azurerm_resource_group.rg.name
 }
 
 resource "azurerm_private_dns_zone" "table" {
-  name                      = "privatelink.table.core.windows.net"
-  resource_group_name       = azurerm_resource_group.rg.name
+  name                = "privatelink.table.core.windows.net"
+  resource_group_name = azurerm_resource_group.rg.name
 }
 
 resource "azurerm_private_dns_zone_virtual_network_link" "blob" {
@@ -203,17 +221,17 @@ resource "azurerm_private_dns_zone_virtual_network_link" "queue" {
   virtual_network_id    = azurerm_virtual_network.default.id
 }
 
-resource "azurerm_container_group" "bastion" {
-  name                = "aci-bastion-${local.func_name}"
+resource "azurerm_container_group" "this" {
+  name                = "aci-${local.func_name}"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
   os_type             = "Linux"
   ip_address_type     = "Private"
-  subnet_ids          = [ azurerm_subnet.aci.id ]
+  subnet_ids          = [azurerm_subnet.aci.id]
 
   container {
     name   = "bastion"
-    image  =  "ghcr.io/implodingduck/az-tf-util-image:latest"
+    image  = "ghcr.io/implodingduck/az-tf-util-image:latest"
     cpu    = "0.5"
     memory = "1"
     ports {
@@ -224,6 +242,7 @@ resource "azurerm_container_group" "bastion" {
       TF_VAR_random_string = random_string.unique.result
       ARM_USE_MSI          = "true"
       ARM_SUBSCRIPTION_ID  = data.azurerm_client_config.current.subscription_id
+      VM_PASSWORD          = random_password.password.result
     }
   }
 
@@ -234,22 +253,25 @@ resource "azurerm_container_group" "bastion" {
   tags = local.tags
 }
 
+
+
+
 resource "azurerm_role_assignment" "owner" {
   scope                = azurerm_resource_group.rg.id
   role_definition_name = "Owner"
-  principal_id         = azurerm_container_group.bastion.identity.0.principal_id
+  principal_id         = azurerm_container_group.this.identity.0.principal_id
 }
 
 resource "azurerm_role_assignment" "owner2" {
   scope                = azurerm_resource_group.rg2.id
   role_definition_name = "Owner"
-  principal_id         = azurerm_container_group.bastion.identity.0.principal_id
+  principal_id         = azurerm_container_group.this.identity.0.principal_id
 }
 
 resource "azurerm_role_assignment" "reader" {
   scope                = "/subscriptions/${data.azurerm_client_config.current.subscription_id}"
   role_definition_name = "Reader"
-  principal_id         = azurerm_container_group.bastion.identity.0.principal_id
+  principal_id         = azurerm_container_group.this.identity.0.principal_id
 }
 
 
@@ -313,8 +335,9 @@ resource "azurerm_firewall_policy_rule_collection_group" "this" {
         port = 443
       }
       source_addresses  = ["*"]
-      destination_fqdns = ["dc.services.visualstudio.com", "management.azure.com", "mcr.microsoft.com", "*.azureedge.net", "*.ubuntu.com", "*.docker.io", "*.docker.com", "*.terraform.io", "*.hashicorp.com", "ghcr.io", "github.com", "*.ghcr.io", "*.github.com"]
+      destination_fqdns = ["dc.services.visualstudio.com", "management.azure.com", "mcr.microsoft.com", "*.azureedge.net", "*.ubuntu.com", "*.docker.io", "*.docker.com", "*.terraform.io", "*.hashicorp.com", "ghcr.io", "github.com", "*.ghcr.io", "*.github.com", "*.githubusercontent.com"]
     }
+
     rule {
       name = "app_rule_collection1_rule2"
       protocols {
@@ -324,40 +347,25 @@ resource "azurerm_firewall_policy_rule_collection_group" "this" {
       source_addresses  = ["*"]
       destination_fqdns = ["crl.microsoft.com", "azure.archive.ubuntu.com"]
     }
+
+    rule {
+      name = "app_rule_collection1_rule3"
+      protocols {
+        type = "Https"
+        port = 443
+      }
+      source_addresses  = ["*"]
+      destination_fqdns = ["aka.ms,*.microsoft.com,azurecliprod.blob.core.windows.net,pypi.python.org,pypi.org,files.pythonhosted.org"]
+    }
+    
   }
 }
 
 resource "azurerm_monitor_diagnostic_setting" "fw" {
   name                           = "allTheLogs"
   target_resource_id             = azurerm_firewall.fw.id
-  log_analytics_destination_type = "AzureDiagnostics"
+  log_analytics_destination_type = "Dedicated"
   log_analytics_workspace_id     = data.azurerm_log_analytics_workspace.default.id
-
-  enabled_log  {
-    category = "AzureFirewallApplicationRule"
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
-  }
-
-  enabled_log {
-    category = "AzureFirewallNetworkRule"
-
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
-  }
-
-  enabled_log {
-    category = "AzureFirewallDnsProxy"
-
-    retention_policy {
-      days    = 0
-      enabled = false
-    }
-  }
 
   enabled_log {
     category = "AZFWApplicationRule"
@@ -439,6 +447,30 @@ resource "azurerm_monitor_diagnostic_setting" "fw" {
       enabled = false
     }
   }
+  enabled_log {
+    category = "AzureFirewallApplicationRule"
+
+    retention_policy {
+      days    = 0
+      enabled = false
+    }
+  }
+  enabled_log {
+    category = "AzureFirewallDnsProxy"
+
+    retention_policy {
+      days    = 0
+      enabled = false
+    }
+  }
+  enabled_log {
+    category = "AzureFirewallNetworkRule"
+
+    retention_policy {
+      days    = 0
+      enabled = false
+    }
+  }
 
   metric {
     category = "AllMetrics"
@@ -453,11 +485,86 @@ resource "azurerm_monitor_diagnostic_setting" "fw" {
 }
 
 resource "azurerm_storage_account" "sa" {
-  name                     = "satest${local.func_name}"
-  resource_group_name      = azurerm_resource_group.rg.name
-  location                 = azurerm_resource_group.rg.location
-  account_tier             = "Standard"
-  account_replication_type = "LRS"
+  name                            = "satest${local.func_name}"
+  resource_group_name             = azurerm_resource_group.rg.name
+  location                        = azurerm_resource_group.rg.location
+  account_tier                    = "Standard"
+  account_replication_type        = "LRS"
+  allow_nested_items_to_be_public = true
+  tags                            = local.tags
+}
 
-  tags = local.tags
+resource "azurerm_network_interface" "this" {
+  name                = "this-nic"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+
+  ip_configuration {
+    name                          = "internal"
+    subnet_id                     = azurerm_subnet.other.id
+    private_ip_address_allocation = "Dynamic"
+  }
+
+}
+
+resource "azurerm_linux_virtual_machine" "this" {
+  name                            = "vm-${local.func_name}"
+  resource_group_name             = azurerm_resource_group.rg.name
+  location                        = azurerm_resource_group.rg.location
+  size                            = "Standard_B1s"
+  admin_username                  = "azureuser"
+  admin_password                  = random_password.password.result
+  disable_password_authentication = false
+  network_interface_ids = [
+    azurerm_network_interface.this.id,
+  ]
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "0001-com-ubuntu-server-jammy"
+    sku       = "22_04-lts-gen2"
+    version   = "latest"
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+}
+
+resource "azurerm_role_assignment" "ownervm" {
+  scope                = azurerm_resource_group.rg.id
+  role_definition_name = "Owner"
+  principal_id         = azurerm_linux_virtual_machine.this.identity.0.principal_id
+}
+
+resource "azurerm_role_assignment" "owner2vm" {
+  scope                = azurerm_resource_group.rg2.id
+  role_definition_name = "Owner"
+  principal_id         = azurerm_linux_virtual_machine.this.identity.0.principal_id
+}
+
+resource "azurerm_role_assignment" "readervm" {
+  scope                = "/subscriptions/${data.azurerm_client_config.current.subscription_id}"
+  role_definition_name = "Reader"
+  principal_id         = azurerm_linux_virtual_machine.this.identity.0.principal_id
+}
+
+resource "azurerm_dev_test_global_vm_shutdown_schedule" "this" {
+  virtual_machine_id = azurerm_linux_virtual_machine.this.id
+  location           = azurerm_resource_group.rg.location
+  enabled            = true
+
+  daily_recurrence_time = "1700"
+  timezone              = "Central Standard Time"
+
+  notification_settings {
+    enabled = false
+  }
+
 }

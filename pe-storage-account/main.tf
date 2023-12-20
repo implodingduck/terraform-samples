@@ -141,8 +141,75 @@ resource "azurerm_storage_account" "sa" {
   location                 = azurerm_resource_group.rg.location
   account_tier             = "Standard"
   account_replication_type = "LRS"
-
+  allow_nested_items_to_be_public = false
   public_network_access_enabled   = false
 
+  queue_properties {
+    cors_rule {
+      allowed_headers = ["*"]
+      allowed_methods = ["GET", "POST"]
+      allowed_origins = ["*"]
+      exposed_headers = ["*"]
+      max_age_in_seconds = 3600
+    }
+
+    logging {
+      version = "1.0"
+      delete  = true
+      read    = true
+      write   = true
+      retention_policy_days = 1
+    }
+    minute_metrics {
+      enabled = true
+      version = "1.0"
+      include_apis = true
+      retention_policy_days = 1
+    }
+    hour_metrics {
+      enabled = true
+      version = "1.0"
+      include_apis = true
+      retention_policy_days = 1
+    }
+    
+  }
+
+  tags = local.tags
+}
+
+
+resource "azurerm_storage_account" "sabasic" {
+  name                     = "sabasic${local.func_name}"
+  resource_group_name      = azurerm_resource_group.rg.name
+  location                 = azurerm_resource_group.rg.location
+  account_tier             = "Standard"
+  account_replication_type = "LRS"
+  allow_nested_items_to_be_public = false
+  public_network_access_enabled   = false
+
+
+  queue_properties {
+    logging {
+      version = "2.0"
+      delete  = true
+      read    = true
+      write   = true
+      retention_policy_days = 1
+    }
+    minute_metrics {
+      enabled = true
+      version = "1.0"
+      include_apis = true
+      retention_policy_days = 1
+    }
+    hour_metrics {
+      enabled = true
+      version = "1.0"
+      include_apis = true
+      retention_policy_days = 1
+    }
+    
+  }
   tags = local.tags
 }

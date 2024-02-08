@@ -65,14 +65,31 @@ resource "azurerm_subnet" "apim" {
 
 }
 
+resource "azurerm_subnet" "app" {
+  name                 = "snet-app"
+  resource_group_name  = azurerm_virtual_network.default.resource_group_name
+  virtual_network_name = azurerm_virtual_network.default.name
+  address_prefixes     = ["10.5.2.0/24"]
+  delegation {
+    name = "aci"
+    service_delegation {
+      name    = "Microsoft.ContainerInstance/containerGroups"
+      actions = ["Microsoft.Network/virtualNetworks/subnets/join/action", "Microsoft.Network/virtualNetworks/subnets/prepareNetworkPolicies/action"]
+    }
+  }
+
+}
+
 
 resource "azurerm_public_ip" "apim" {
-  name                = "pip-apkm-${local.name}"
+  name                = "pip-apim-${local.name}"
   resource_group_name = azurerm_resource_group.rg.name
   location            = azurerm_resource_group.rg.location
   allocation_method   = "Static"
-
+  sku                 = "Standard"   
+  domain_name_label   = "apim-${local.name}" 
   tags = local.tags
+
 }
 
 resource "azurerm_api_management" "apim" {
@@ -80,7 +97,7 @@ resource "azurerm_api_management" "apim" {
   name                 = "apim-${local.name}"
   location             = azurerm_resource_group.rg.location
   resource_group_name  = azurerm_resource_group.rg.name
-  publisher_name       = "openai-python-enterprise-logging"
+  publisher_name       = "Implodingduck Labs"
   publisher_email      = "something@nothing.com"
   public_ip_address_id = azurerm_public_ip.apim.id
   virtual_network_type = "Internal"
@@ -163,7 +180,7 @@ EOT
 }
 
 resource "azurerm_network_security_group" "apim" {
-  name                = "nsg-apim"
+  name                = "nsg-apim-${random_string.unique.result}"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
 
@@ -209,4 +226,79 @@ resource "azurerm_network_security_group" "apim" {
 resource "azurerm_subnet_network_security_group_association" "apim" {
   subnet_id                 = azurerm_subnet.apim.id
   network_security_group_id = azurerm_network_security_group.apim.id
+}
+
+resource "azurerm_private_dns_zone" "apim" {
+  name                = "azure-api.net"
+  resource_group_name = azurerm_resource_group.rg.name
+}
+
+resource "azurerm_private_dns_a_record" "gw" {
+  name                = "apim-${local.name}"
+  zone_name           = azurerm_private_dns_zone.apim.name
+  resource_group_name = azurerm_resource_group.rg.name
+  ttl                 = 300
+  records             = azurerm_api_management.apim.private_ip_addresses
+}
+
+resource "azurerm_private_dns_a_record" "portal" {
+  name                = "apim-${local.name}.portal"
+  zone_name           = azurerm_private_dns_zone.apim.name
+  resource_group_name = azurerm_resource_group.rg.name
+  ttl                 = 300
+  records             = azurerm_api_management.apim.private_ip_addresses
+}
+
+resource "azurerm_private_dns_a_record" "developer" {
+  name                = "apim-${local.name}.developer"
+  zone_name           = azurerm_private_dns_zone.apim.name
+  resource_group_name = azurerm_resource_group.rg.name
+  ttl                 = 300
+  records             = azurerm_api_management.apim.private_ip_addresses
+}
+
+resource "azurerm_private_dns_a_record" "management" {
+  name                = "apim-${local.name}.management"
+  zone_name           = azurerm_private_dns_zone.apim.name
+  resource_group_name = azurerm_resource_group.rg.name
+  ttl                 = 300
+  records             = azurerm_api_management.apim.private_ip_addresses
+}
+
+resource "azurerm_private_dns_a_record" "scm" {
+  name                = "apim-${local.name}.scm"
+  zone_name           = azurerm_private_dns_zone.apim.name
+  resource_group_name = azurerm_resource_group.rg.name
+  ttl                 = 300
+  records             = azurerm_api_management.apim.private_ip_addresses
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "this" {
+  depends_on = [ azurerm_api_management.apim ]
+  name                  = "apim-${local.name}-link"
+  resource_group_name   = azurerm_resource_group.rg.name
+  private_dns_zone_name = azurerm_private_dns_zone.apim.name
+  virtual_network_id    = azurerm_virtual_network.default.id
+}
+
+resource "azurerm_container_group" "aci" {
+  name                = "aci-${local.name}"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+  ip_address_type     = "Private"
+  os_type             = "Linux"
+  subnet_ids          = [azurerm_subnet.app.id]
+
+  container {
+    name   = "utils"
+    image  = "bjd145/utils:3.7"
+    cpu    = "0.5"
+    memory = "1.5"
+    ports {
+      port     = 443
+      protocol = "TCP"
+    }
+  }
+
+  tags = local.tags
 }

@@ -29,3 +29,5 @@ override.tf.json
 # example: *tfplan*
 **/.terraform.lock.hcl
 **/ssh_rsa.pub
+**/__pycache__/
+**.zip

@@ -31,3 +31,5 @@ override.tf.json
 **/ssh_rsa.pub
 **/__pycache__/
 **.zip
+
+.env
